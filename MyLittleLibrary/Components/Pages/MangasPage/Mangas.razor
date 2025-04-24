@@ -1,0 +1,25 @@
+﻿@page "/manga"
+@using MyLittleLibrary.Components.Shared
+<h3>Manga</h3>
+
+<MudGrid>
+    @foreach (var manga in MangaList)
+    {
+        <MudItem xs="6" md="4" lg="3" xl="2" >
+            <Element Title="@manga" />
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    private List<string> MangaList = new List<string>
+    {
+        "One Piece",
+        "Naruto",
+        "Attack on Titan",
+        "My Hero Academia",
+        "Demon Slayer",
+        "Death Note",
+        "Fullmetal Alchemist",
+    };
+}

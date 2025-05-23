@@ -1,25 +1,182 @@
 ﻿@page "/manga"
 @using MyLittleLibrary.Components.Shared
-<h3>Manga</h3>
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject MangaRepository MangaRepository
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<MudGrid>
-    @foreach (var manga in MangaList)
+
+<PageTitle>Manga</PageTitle>
+<MudContainer>
+<div class="d-flex justify-space-between align-center mb-4">
+    <MudText Typo="Typo.h4">List of my mangas</MudText>
+    <MudButton Variant="Variant.Filled" 
+               Color="Color.Primary" 
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddMangaDialog">
+        Add New Manga
+    </MudButton>
+</div>
+
+@if (isLoading)
     {
-        <MudItem xs="6" md="4" lg="3" xl="2" >
-            <Element Title="@manga" />
-        </MudItem>
+        <div class="d-flex justify-center">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
     }
-</MudGrid>
+    else if (mangaSeries.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info" Class="my-4">Your manga collection is empty. Start adding manga!</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var series in mangaSeries)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer" @onclick="@(() => NavigateToSeriesDetails(series.Title))">
+                        <MudGrid>
+                            <MudItem xs="4">
+                                @if (!string.IsNullOrEmpty(series.CoverImage))
+                                {
+                                    <img src="@series.CoverImage" alt="@series.Title" style="width: 100%; max-height: 150px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Book" Size="Size.Large" Style="width: 100%; height: 150px;" />
+                                }
+                            </MudItem>
+                            <MudItem xs="8">
+                                <MudText Typo="Typo.h5">@series.Title</MudText>
+                                <MudText Typo="Typo.body1">Volumes: @series.VolumeCount</MudText>
+                                <MudText Typo="Typo.body2">Author: @series.Author</MudText>
+                                <MudText Typo="Typo.caption">
+                                    @if (series.CompletionPercentage == 100)
+                                    {
+                                        <MudChip T="string" Color="Color.Success" Size="Size.Small">Completed</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Color="Color.Info" Size="Size.Small">@series.CompletionPercentage%</MudChip>
+                                    }
+                                </MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+
+@* @if (MangaList == null) *@
+@* { *@
+@*     <MudProgressCircular Color="Color.Primary" Indeterminate="true" /> *@
+@* } *@
+@* else if (MangaList.Count == 0) *@
+@* { *@
+@*     <MudAlert Severity="Severity.Info">No manga found in the database.</MudAlert> *@
+@* } *@
+@* else *@
+@* { *@
+@*     <MudGrid Class="align-end" Justify="Justify.FlexStart"> *@
+@*         @foreach (var manga in MangaList) *@
+@*         { *@
+@*             <MudItem> *@
+@*                 <Element Title="@manga.Title" ImagePath="@manga.ImagePath" Url="/manga/mangainfo" /> *@
+@*             </MudItem> *@
+@*         } *@
+@*     </MudGrid> *@
+@* } *@
+</MudContainer>
 
 @code {
-    private List<string> MangaList = new List<string>
+    private List<Manga>? MangaList;
+    private bool isLoading = true;
+    private List<MangaSeries> mangaSeries = new();
+
+
+    protected override async Task OnInitializedAsync()
     {
-        "One Piece",
-        "Naruto",
-        "Attack on Titan",
-        "My Hero Academia",
-        "Demon Slayer",
-        "Death Note",
-        "Fullmetal Alchemist",
+        await LoadMangaCollection();
+
+    }
+
+    private async Task LoadMangaList()
+    {
+        MangaList = await MangaRepository.GetAllAsync();
+    }
+    
+    private async Task LoadMangaCollection()
+    {
+        isLoading = true;
+        
+        try
+        {
+            // Get all manga from the repository
+            var allManga = await MangaRepository.GetAllAsync();
+            
+            // Group manga by title to create series
+            mangaSeries = allManga
+                .GroupBy(m => m.Title)
+                .Select(group => new MangaSeries
+                {
+                    Title = group.Key,
+                    Author = group.First().Author, // Assuming same author for all volumes
+                    VolumeCount = group.Count(),
+                    CoverImage = group.OrderBy(m => m.Volume).LastOrDefault()?.ImagePath,
+                    CompletionPercentage = (int)(group.Count(m => m.IsRead) * 100.0 / group.Count())
+                })
+                .OrderBy(s => s.Title)
+                .ToList();
+        }
+        catch (Exception)
+        {
+            // Handle any exceptions
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void NavigateToSeriesDetails(string title)
+    {
+        // Navigate to the MangaInfo page with the title as a query parameter
+        NavigationManager.NavigateTo($"/manga/mangainfo?title={Uri.EscapeDataString(title)}");
+    }
+
+    private async Task OpenAddMangaDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<MangaDialog>("Add New Manga", options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            Snackbar.Add("Manga successfully added!", Severity.Success);
+            await LoadMangaCollection(); // Reload the manga list
+        }
+    }
+
+    // Helper class to represent a manga series
+    private class MangaSeries
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public int VolumeCount { get; set; }
+        public string? CoverImage { get; set; }
+        public int CompletionPercentage { get; set; }
+    }
+
+
+    private List<Manga> MangaList2 = new() 
+    {
+        new Manga("Kaiju n.8", "Kaijun.8", "", 1, "images/kaijuneight01.jpg", false, true, DateTime.Now),
+        new Manga("Kowloon Generic Romance", "KowloonGenericRomance", "", 1, "images/kowloongenericromance01.jpg", false, true, DateTime.Now),
+        new Manga("Otherside Picnic", "OthersidePicnic", "", 1, "images/othersidepicnic01.jpg", false, true, DateTime.Now),
+        new Manga("Smoking Behind the Supermarket With You", "SmokingBehindtheSupermarketWithYou", "", 1, "images/smokingbehindthesupermarketwithyou01.png", false, true, DateTime.Now),
     };
 }

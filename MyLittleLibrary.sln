@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyLittleLibrary", "MyLittleLibrary\MyLittleLibrary.csproj", "{23E0644F-E274-43A5-A548-B3CF3D323A55}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyLittleLibrary.Infrastructure", "MyLittleLibrary.Infrastructure\MyLittleLibrary.Infrastructure.csproj", "{83BC140E-4F7D-4532-B71D-C60C58AE486E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyLittleLibrary.Domain", "MyLittleLibrary.Domain\MyLittleLibrary.Domain.csproj", "{DC4E2224-8F54-45FC-B34C-7FCA34D1054B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{23E0644F-E274-43A5-A548-B3CF3D323A55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23E0644F-E274-43A5-A548-B3CF3D323A55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23E0644F-E274-43A5-A548-B3CF3D323A55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83BC140E-4F7D-4532-B71D-C60C58AE486E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83BC140E-4F7D-4532-B71D-C60C58AE486E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83BC140E-4F7D-4532-B71D-C60C58AE486E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83BC140E-4F7D-4532-B71D-C60C58AE486E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC4E2224-8F54-45FC-B34C-7FCA34D1054B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC4E2224-8F54-45FC-B34C-7FCA34D1054B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC4E2224-8F54-45FC-B34C-7FCA34D1054B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC4E2224-8F54-45FC-B34C-7FCA34D1054B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

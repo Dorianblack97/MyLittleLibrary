@@ -15,4 +15,10 @@
     <ItemGroup>
       <None Include="wwwroot\images\fallback.jpg" />
     </ItemGroup>
+
+
+    <ItemGroup>
+      <ProjectReference Include="..\MyLittleLibrary.Domain\MyLittleLibrary.Domain.csproj" />
+      <ProjectReference Include="..\MyLittleLibrary.Infrastructure\MyLittleLibrary.Infrastructure.csproj" />
+    </ItemGroup>
 </Project>

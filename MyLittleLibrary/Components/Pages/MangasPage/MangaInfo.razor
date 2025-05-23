@@ -1,0 +1,102 @@
+﻿@page "/manga/mangainfo"
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject MangaRepository MangaRepository
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4 text-center">@Title</MudText>
+    
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (mangaVolumes.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info" Class="my-4">No volumes found for this series.</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var manga in mangaVolumes)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="3" Class="h-100">
+                        <MudCardMedia Image="@manga.ImagePath" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">Volume @manga.Volume</MudText>
+                            <MudText Typo="Typo.body2">Author: @manga.Author</MudText>
+                            @if (manga.PublishDate.HasValue)
+                            {
+                                <MudText Typo="Typo.body2">Published: @manga.PublishDate.Value.ToString("d")</MudText>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudChip T="string" OnClick="() => OnChipClicked(manga)" Color="@(manga.IsRead ? Color.Success : Color.Default)" 
+                                    Size="Size.Small" 
+                                    Icon="@(manga.IsRead ? Icons.Material.Filled.Check : Icons.Material.Filled.HourglassEmpty)">
+                                @(manga.IsRead ? "Read" : "Unread")
+                            </MudChip>
+                            <MudChip T="string" Color="@(manga.IsDigital ? Color.Info : Color.Default)" 
+                                    Size="Size.Small" 
+                                    Icon="@(manga.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
+                                @(manga.IsDigital ? "Digital" : "Physical")
+                            </MudChip>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public required string Title { get; set; }
+    
+    private List<Manga> mangaVolumes = new();
+    private bool isLoading = true;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMangaVolumes();
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadMangaVolumes();
+    }
+    
+    private async Task LoadMangaVolumes()
+    {
+        isLoading = true;
+        
+        try
+        {
+            // Fetch all manga volumes for this series from the repository
+            var allMangas = await MangaRepository.GetAllByTitleAsync(Title);
+            
+            // Filter mangas by title (case-insensitive)
+            mangaVolumes = allMangas
+                .OrderBy(m => m.Volume)
+                .ToList();
+        }
+        catch (Exception)
+        {
+            // Handle any exceptions
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnChipClicked(Manga manga)
+    {
+        var updatedManga = manga with { IsRead = !manga.IsRead };
+        await MangaRepository.UpdateAsync(updatedManga.Id, updatedManga);
+        await LoadMangaVolumes();
+    }
+}

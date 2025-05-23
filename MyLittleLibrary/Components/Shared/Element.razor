@@ -1,7 +1,23 @@
-﻿<MudImage Fluid="true" Src="images/mony.jpg" Alt="Not found" Width="200" Elevation="25" Class="rounded-lg" FallbackSrc="images/fallback.jpg" />
-<p>@Title</p>
+﻿<MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer" @onclick="@(() => NavigateToPage(Title))">
+//<MudButton OnClick="() => NavigateToPage(Title)" Style="padding: 0; border: none; background: none; width: 100%; display: block; text-align: center;">
+    <MudImage Fluid="true" Src="@ImagePath" Alt="Not found" Width="200" Elevation="25" Class="rounded-lg" FallbackSrc="images/fallback.jpg" />
+    <MudText Align="Align.Center" Style="max-width: 200px;">@Title</MudText>
+//</MudButton>
+</MudPaper>
 
 @code {
     [Parameter]
     public required string Title { get; set; }
+    [Parameter]
+    public string ImagePath { get; set; }
+    [Parameter]
+    public required string Url { get; set; }
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    private void NavigateToPage(string title)
+    {
+        NavigationManager.NavigateTo($"{Url}?title={Uri.EscapeDataString(title)}");
+    }
 }

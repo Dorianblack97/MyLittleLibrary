@@ -1,5 +1,6 @@
 using MudBlazor.Services;
 using MyLittleLibrary.Components;
+using MyLittleLibrary.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,14 @@ builder.Services.AddMudServices();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddSingleton<MangaRepository>(sp => {
+    var config = sp.GetRequiredService<IConfiguration>();
+    var connectionString = config.GetSection("MongoDB:ConnectionString").Value;
+    var databaseName = config.GetSection("MongoDB:DatabaseName").Value;
+    return new MangaRepository(connectionString, databaseName);
+});
+
 
 var app = builder.Build();
 

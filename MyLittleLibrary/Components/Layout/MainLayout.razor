@@ -6,7 +6,8 @@
 <MudSnackbarProvider/>
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@((e) => DrawerToggle())"/>
         <MudText Typo="Typo.h5" Class="ml-3">My library</MudText>
         <MudSpacer/>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
@@ -38,8 +39,8 @@
 
         _theme = new()
         {
-            PaletteLight = _lightPalette,
-            PaletteDark = _darkPalette,
+            PaletteLight = _lightGreenPalette,
+            PaletteDark = _darkGreenPalette,
             LayoutProperties = new LayoutProperties()
         };
     }
@@ -62,6 +63,20 @@
         DrawerBackground = "#ffffff",
         GrayLight = "#e8e8e8",
         GrayLighter = "#f9f9f9",
+    };
+
+    private readonly PaletteLight _lightGreenPalette = new()
+    {
+        Primary = Colors.Teal.Default,
+        Secondary = Colors.Teal.Lighten1,
+        Background = Colors.Teal.Lighten5,
+        AppbarBackground = Colors.Teal.Default,
+        DrawerBackground = Colors.Teal.Lighten4,
+        DrawerText = "rgba(0,0,0, 0.7)",
+        Surface = Colors.Teal.Lighten4,
+        TextPrimary = Colors.Gray.Darken3,
+        TextSecondary = Colors.Gray.Darken1
+
     };
 
     private readonly PaletteDark _darkPalette = new()
@@ -92,6 +107,20 @@
         Divider = "#292838",
         OverlayLight = "#1e1e2d80",
     };
+
+    private readonly PaletteDark _darkGreenPalette = new()
+    {
+        Primary = Colors.Teal.Lighten1,
+        Secondary = Colors.Teal.Lighten2,
+        Background = "#1A1A1A",
+        AppbarBackground = Colors.Teal.Darken3,
+        DrawerBackground = "#121212",
+        DrawerText = "rgba(255,255,255, 0.85)",
+        Surface = "#202020",
+        TextPrimary = Colors.Gray.Lighten3,
+        TextSecondary = Colors.Gray.Lighten1,
+    };
+
 
     public string DarkLightModeButtonIcon => _isDarkMode switch
     {

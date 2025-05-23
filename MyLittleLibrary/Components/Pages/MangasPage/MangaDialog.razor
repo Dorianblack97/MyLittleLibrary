@@ -1,0 +1,205 @@
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@using System.IO
+@using System.Text.RegularExpressions
+@inject MangaRepository MangaRepository
+@inject IWebHostEnvironment Environment
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2"/>
+            Add New Manga
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="@success">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="manga.Title" Label="Title" Required="true"
+                                  RequiredError="Title is required!"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="manga.Author" Label="Author" Required="true"
+                                  RequiredError="Author is required!"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="manga.Volume" Label="Volume" Required="true" Min="1"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudDatePicker @bind-Date="publishDate" Label="Publish Date"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles" Accept=".jpg,.jpeg,.png"
+                                   MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton HtmlTag="label"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Image">
+                                Upload Cover Image
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    @if (!string.IsNullOrEmpty(manga.ImagePath))
+                    {
+                        <div class="d-flex align-center mt-2">
+                            <MudText Class="mr-2">Image selected:</MudText>
+                            <MudChip T="string" Color="Color.Success"
+                                     Icon="@Icons.Material.Filled.Check">@Path.GetFileName(manga.ImagePath)</MudChip>
+                            <MudIconButton Icon="@Icons.Material.Filled.Clear" Size="Size.Small"
+                                           OnClick="ClearSelectedImage"/>
+                        </div>
+                    }
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSwitch T="bool" @bind-Checked="manga.IsDigital" Label="Digital Copy" Color="Color.Primary"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSwitch T="bool" @bind-Checked="manga.IsRead" Label="Already Read" Color="Color.Secondary"/>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="Submit"
+                   Disabled="@(!success || isSubmitting)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Saving</MudText>
+            }
+            else
+            {
+                <MudText>Save</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+    private MangaMutable manga = new();
+    private DateTime? publishDate;
+    private bool success = false;
+    private bool isSubmitting = false;
+    private MudForm form;
+    private IBrowserFile? uploadedFile;
+    private string originalFileExtension;
+
+    // A mutable class to work with form binding
+    private class MangaMutable
+    {
+        private string _title = string.Empty;
+
+        public string Title
+        {
+            get => _title;
+            set
+            {
+                _title = value;
+                // Update the slug whenever title changes
+                TitleSlug = GenerateSlug(value);
+            }
+        }
+
+        public string TitleSlug { get; private set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public int Volume { get; set; } = 1;
+        public string? ImagePath { get; set; }
+        public bool IsDigital { get; set; }
+        public bool IsRead { get; set; }
+
+        // Helper method to generate slug from title
+        private string GenerateSlug(string title)
+        {
+            // Remove special characters and replace spaces with empty string
+            return Regex.Replace(title, @"[^a-zA-Z0-9]", "");
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        uploadedFile = file;
+
+        // Store the original file extension
+        originalFileExtension = Path.GetExtension(file.Name);
+
+        // Generate filename based on title slug and volume number
+        UpdateImagePath();
+    }
+
+    private void UpdateImagePath()
+    {
+        if (uploadedFile is null || string.IsNullOrEmpty(manga.TitleSlug)) return;
+        var fileName = $"{manga.TitleSlug}_{manga.Volume}{originalFileExtension}";
+        manga.ImagePath = Path.Combine("images", manga.TitleSlug, fileName);
+    }
+
+    private void ClearSelectedImage()
+    {
+        manga.ImagePath = null;
+        uploadedFile = null;
+        originalFileExtension = string.Empty;
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (success)
+        {
+            isSubmitting = true;
+
+            try
+            {
+                // Update image path one more time to ensure it uses latest title/volume
+                if (uploadedFile != null)
+                {
+                    UpdateImagePath();
+
+                    var filePath = Path.Combine(Environment.WebRootPath, manga.ImagePath!);
+
+                    // Ensure directory exists
+                    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+                    // Save the file to disk
+                    using var fileStream = new FileStream(filePath, FileMode.Create);
+                    await uploadedFile.OpenReadStream(maxAllowedSize: 10485760).CopyToAsync(fileStream);
+                }
+
+                // Convert from mutable model to immutable record
+                var mangaToAdd = new Manga(
+                    manga.Title,
+                    manga.TitleSlug,
+                    manga.Author,
+                    manga.Volume,
+                    manga.ImagePath,
+                    manga.IsDigital,
+                    manga.IsRead,
+                    publishDate
+                );
+
+                await MangaRepository.CreateAsync(mangaToAdd);
+
+                // Return the new manga to the caller
+                MudDialog.Close(DialogResult.Ok(mangaToAdd));
+            }
+            catch (Exception ex)
+            {
+                isSubmitting = false;
+                MudDialog.Close(DialogResult.Cancel());
+            }
+        }
+    }
+
+}

@@ -53,6 +53,7 @@ public class MangaRepository
             .Set(m => m.Title, updatedManga.Title)
             .Set(m => m.TitleSlug, updatedManga.TitleSlug)
             .Set(m => m.Author, updatedManga.Author)
+            .Set(m => m.Illustrator, updatedManga.Illustrator)
             .Set(m => m.Volume, updatedManga.Volume)
             .Set(m => m.ImagePath, updatedManga.ImagePath)
             .Set(m => m.IsDigital, updatedManga.IsDigital)

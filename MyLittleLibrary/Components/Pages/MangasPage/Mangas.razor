@@ -78,6 +78,7 @@
                                          Style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">@series.Title</MudText>
                                 <MudText Typo="Typo.body1" Class="text-truncate d-block">Volumes: @series.VolumeCount</MudText>
                                 <MudText Typo="Typo.body2" Class="text-truncate d-block">Author: @series.Author</MudText>
+                                <MudText Typo="Typo.body2" Class="text-truncate d-block">Illustrator: @series.Illustrator</MudText>
                                 <MudText Typo="Typo.caption">
                                     @if (series.CompletionPercentage == 100)
                                     {
@@ -157,6 +158,7 @@
                 {
                     Title = group.Key,
                     Author = group.First().Author, // Assuming same author for all volumes
+                    Illustrator = group.First().Illustrator, // Add this line
                     IsDigital = group.First().IsDigital,
                     VolumeCount = group.Count(),
                     CoverImage = group.OrderBy(m => m.Volume).LastOrDefault()?.ImagePath,
@@ -201,11 +203,12 @@
         }
     }
 
-    // Helper class to represent a manga series
+// Update the MangaSeries class
     public class MangaSeries
     {
         public string Title { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
+        public string Illustrator { get; set; } = string.Empty;
         public bool IsDigital { get; set; }
         public int VolumeCount { get; set; }
         public string? CoverImage { get; set; }
@@ -215,7 +218,7 @@
 
     private List<Manga> MangaList2 = new()
     {
-        new Manga("Kaiju n.8", "Kaijun.8", "", 1, "images/kaijuneight01.jpg", false, true, DateTime.Now),
+        new Manga("Kaiju n.8", "Kaijun.8", "", "", 1, "images/kaijuneight01.jpg", false, true, DateTime.Now),
         
         
         

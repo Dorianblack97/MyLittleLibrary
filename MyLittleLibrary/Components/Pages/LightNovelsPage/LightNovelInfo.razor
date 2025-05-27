@@ -1,0 +1,233 @@
+﻿@page "/lightnovel/lightnovelinfo"
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject LightNovelRepository LightNovelRepository
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h3">@Title</MudText>
+        <MudIconButton Color="Color.Primary" 
+                       Icon="@Icons.Material.Filled.Add"
+                       Size="Size.Large"
+                       OnClick="OpenAddVolumeDialog">
+        </MudIconButton>
+    </div>
+    
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (lightNovelVolumes.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info" Class="my-4">No volumes found for this series.</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var lightNovel in lightNovelVolumes)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="3" Class="h-100">
+                        <MudCardMedia Height="250" Style="object-fit: contain; cursor: zoom-in;" 
+                                      Image="@lightNovel.ImagePath" 
+                                      @onclick="() => OpenImagePreview(lightNovel.ImagePath)" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">Volume @lightNovel.Volume</MudText>
+                            <MudText Typo="Typo.body2">Author: @lightNovel.Author</MudText>
+                            <MudText Typo="Typo.body2">Illustrator: @lightNovel.Illustrator</MudText>
+                            @if (lightNovel.PublishDate.HasValue)
+                            {
+                                <MudText Typo="Typo.body2">Published: @lightNovel.PublishDate.Value.ToString("d")</MudText>
+                            }
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudChip T="string" OnClick="() => OnChipClicked(lightNovel)" Color="@(lightNovel.IsRead ? Color.Success : Color.Default)" 
+                                     Size="Size.Small" 
+                                     Icon="@(lightNovel.IsRead ? Icons.Material.Filled.Check : Icons.Material.Filled.HourglassEmpty)">
+                                @(lightNovel.IsRead ? "Read" : "Unread")
+                            </MudChip>
+                            <MudChip T="string" Color="Color.Default" 
+                                     Size="Size.Small" 
+                                     Icon="@(lightNovel.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
+                                @(lightNovel.IsDigital ? "Digital" : "Physical")
+                            </MudChip>
+                            <MudSpacer />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(lightNovel)"
+                                           aria-label="Edit" />
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    @if (showImagePreview)
+    {
+        <MudOverlay Visible="showImagePreview" DarkBackground="true" Absolute="false" ZIndex="9999" OnClick="CloseImagePreview">
+            <div class="d-flex justify-center align-center" style="width: 100%; height: 100%;">
+                <MudImage Src="@previewImagePath" Alt="Full size light novel cover" 
+                          Elevation="25" 
+                          Class="rounded-lg ma-4" 
+                          ObjectFit="ObjectFit.Contain"
+                          Style="Height: 90%; Width: 90%;" />
+            </div>
+        </MudOverlay>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public required string Title { get; set; }
+    
+    private List<LightNovel> lightNovelVolumes = new();
+    private bool isLoading = true;
+    private bool showImagePreview = false;
+    private string previewImagePath = string.Empty;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLightNovelVolumes();
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadLightNovelVolumes();
+    }
+    
+    private async Task LoadLightNovelVolumes()
+    {
+        isLoading = true;
+        
+        try
+        {
+            // Fetch all light novel volumes for this series from the repository
+            var allLightNovels = await LightNovelRepository.GetAllByTitleAsync(Title);
+            
+            // Filter light novels by title (case-insensitive)
+            lightNovelVolumes = allLightNovels
+                .OrderBy(ln => ln.Volume)
+                .ToList();
+        }
+        catch (Exception)
+        {
+            // Handle any exceptions
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnChipClicked(LightNovel lightNovel)
+    {
+        var updatedLightNovel = lightNovel with { IsRead = !lightNovel.IsRead };
+        await LightNovelRepository.UpdateAsync(updatedLightNovel.Id, updatedLightNovel);
+        await LoadLightNovelVolumes();
+    }
+    
+    private async Task OpenEditDialog(LightNovel lightNovel)
+    {
+        var parameters = new DialogParameters
+        {
+            ["LightNovelToEdit"] = lightNovel,
+            ["IsEdit"] = true
+        };
+        
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small,
+            BackdropClick = false // Prevents accidental closing on mobile
+        };
+        
+        var dialog = await DialogService.ShowAsync<LightNovelDialog>("Edit Light Novel", parameters, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await LoadLightNovelVolumes();
+        }
+    }
+    
+    private async Task OpenAddVolumeDialog()
+    {
+        // Check if there are any volumes
+        if (lightNovelVolumes.Count > 0)
+        {
+            // Create a new light novel object with the title pre-filled
+            var lightNovelBase = lightNovelVolumes.Last();
+            var newLightNovel = new LightNovel(
+                title: lightNovelBase.Title,
+                titleSlug: lightNovelBase.TitleSlug,
+                author: lightNovelBase.Author,
+                illustrator: lightNovelBase.Illustrator,
+                volume: lightNovelBase.Volume + 1,
+                imagePath: null,
+                isDigital: lightNovelBase.IsDigital,
+                isRead: false,
+                publishDate: null);
+
+            var parameters = new DialogParameters
+            {
+                ["LightNovelToEdit"] = newLightNovel,
+                ["IsEdit"] = false
+            };
+            
+            var options = new DialogOptions 
+            { 
+                CloseOnEscapeKey = true,
+                FullWidth = true,
+                MaxWidth = MaxWidth.Small,
+                BackdropClick = false
+            };
+            
+            var dialog = await DialogService.ShowAsync<LightNovelDialog>("Add New Volume", parameters, options);
+            var result = await dialog.Result;
+            
+            if (!result.Canceled)
+            {
+                await LoadLightNovelVolumes();
+            }
+        }
+        else
+        {
+            // No volumes yet, open a blank dialog
+            var options = new DialogOptions 
+            { 
+                CloseOnEscapeKey = true,
+                FullWidth = true,
+                MaxWidth = MaxWidth.Small,
+                BackdropClick = false
+            };
+            
+            var dialog = await DialogService.ShowAsync<LightNovelDialog>("Add New Light Novel", options);
+            var result = await dialog.Result;
+            
+            if (!result.Canceled)
+            {
+                await LoadLightNovelVolumes();
+            }
+        }
+    }
+    
+    private void OpenImagePreview(string imagePath)
+    {
+        if (!string.IsNullOrEmpty(imagePath))
+        {
+            previewImagePath = imagePath;
+            showImagePreview = true;
+        }
+    }
+    
+    private void CloseImagePreview()
+    {
+        showImagePreview = false;
+    }
+}

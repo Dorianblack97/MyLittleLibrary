@@ -37,6 +37,7 @@
                         <MudCardContent>
                             <MudText Typo="Typo.h6">Volume @manga.Volume</MudText>
                             <MudText Typo="Typo.body2">Author: @manga.Author</MudText>
+                            <MudText Typo="Typo.body2">Illustrator: @manga.Illustrator</MudText>
                             @if (manga.PublishDate.HasValue)
                             {
                                 <MudText Typo="Typo.body2">Published: @manga.PublishDate.Value.ToString("d")</MudText>
@@ -164,6 +165,7 @@
             title: mangaBase.Title,
             titleSlug: mangaBase.TitleSlug,
             author: mangaBase.Author,
+            illustrator: mangaBase.Illustrator,
             volume: mangaBase.Volume + 1,
             imagePath: null,
             isDigital: mangaBase.IsDigital,

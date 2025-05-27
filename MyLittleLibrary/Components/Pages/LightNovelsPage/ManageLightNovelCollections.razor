@@ -1,26 +1,27 @@
-﻿@page "/manage-mangas"
+﻿
+@page "/manage-lightnovels"
 @using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject MangaRepository MangaRepository
+@inject LightNovelRepository LightNovelRepository
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudPaper Elevation="3" Class="pa-4 mb-4">
-        <MudText Typo="Typo.h4" Class="mb-4">Manage Manga Collections</MudText>
+        <MudText Typo="Typo.h4" Class="mb-4">Manage Light Novel Collections</MudText>
         
         <MudGrid>
             <MudItem xs="12" sm="6" md="4">
                 <MudTextField @bind-Value="searchQuery" Label="Search by title" Immediate="true" 
                               Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
-                              OnAdornmentClick="SearchMangas" OnKeyDown="@OnSearchKeyDown"/>
+                              OnAdornmentClick="SearchLightNovels" OnKeyDown="@OnSearchKeyDown"/>
             </MudItem>
             <MudItem xs="12" sm="6" md="8" Class="d-flex justify-end">
                 <MudButton Variant="Variant.Filled" Color="Color.Error" 
                            StartIcon="@Icons.Material.Filled.DeleteSweep"
                            OnClick="@(() => OpenDeleteCollectionDialog())"
-                           Disabled="@(!GroupedMangas.Any())">
+                           Disabled="@(!GroupedLightNovels.Any())">
                     Delete Collection
                 </MudButton>
             </MudItem>
@@ -33,13 +34,13 @@
             <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
         </div>
     }
-    else if (!GroupedMangas.Any())
+    else if (!GroupedLightNovels.Any())
     {
-        <MudAlert Severity="Severity.Info" Class="mt-4">No manga collections found. Try a different search term or add new manga.</MudAlert>
+        <MudAlert Severity="Severity.Info" Class="mt-4">No light novel collections found. Try a different search term or add new light novels.</MudAlert>
     }
     else
     {
-        @foreach (var group in GroupedMangas)
+        @foreach (var group in GroupedLightNovels)
         {
             <MudExpansionPanel Class="mb-4">
                 <TitleContent>
@@ -56,33 +57,33 @@
                     </div>
                 </TitleContent>
                 <ChildContent>
-                    <MudTable Items="@group.OrderBy(m => m.Volume)" Hover="true" Breakpoint="Breakpoint.Sm">
-    <HeaderContent>
-        <MudTh>Volume</MudTh>
-        <MudTh>Author</MudTh>
-        <MudTh>Illustrator</MudTh>
-        <MudTh>Format</MudTh>
-        <MudTh>Read Status</MudTh>
-        <MudTh>Publish Date</MudTh>
-        <MudTh>Actions</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="Volume">@context.Volume</MudTd>
-        <MudTd DataLabel="Author">@context.Author</MudTd>
-        <MudTd DataLabel="Illustrator">@context.Illustrator</MudTd>
-        <MudTd DataLabel="Format">@(context.IsDigital ? "Digital" : "Physical")</MudTd>
-        <MudTd DataLabel="Read Status">
-            <MudChip T="string" Color="@(context.IsRead ? Color.Success : Color.Default)" Size="Size.Small">
-                @(context.IsRead ? "Read" : "Unread")
-            </MudChip>
-        </MudTd>
-        <MudTd DataLabel="Publish Date">@(context.PublishDate?.ToShortDateString() ?? "-")</MudTd>
-        <MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" 
-                           OnClick="@(() => OpenDeleteMangaDialog(context))" />
-        </MudTd>
-    </RowTemplate>
-</MudTable>
+                    <MudTable Items="@group.OrderBy(ln => ln.Volume)" Hover="true" Breakpoint="Breakpoint.Sm">
+                        <HeaderContent>
+                            <MudTh>Volume</MudTh>
+                            <MudTh>Author</MudTh>
+                            <MudTh>Illustrator</MudTh>
+                            <MudTh>Format</MudTh>
+                            <MudTh>Read Status</MudTh>
+                            <MudTh>Publish Date</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Volume">@context.Volume</MudTd>
+                            <MudTd DataLabel="Author">@context.Author</MudTd>
+                            <MudTd DataLabel="Illustrator">@context.Illustrator</MudTd>
+                            <MudTd DataLabel="Format">@(context.IsDigital ? "Digital" : "Physical")</MudTd>
+                            <MudTd DataLabel="Read Status">
+                                <MudChip T="string" Color="@(context.IsRead ? Color.Success : Color.Default)" Size="Size.Small">
+                                    @(context.IsRead ? "Read" : "Unread")
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Publish Date">@(context.PublishDate?.ToShortDateString() ?? "-")</MudTd>
+                            <MudTd>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" 
+                                               OnClick="@(() => OpenDeleteLightNovelDialog(context))" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
                 </ChildContent>
             </MudExpansionPanel>
         }
@@ -91,35 +92,35 @@
 
 @code {
     private string searchQuery = "";
-    private List<Manga> allMangas = new();
+    private List<LightNovel> allLightNovels = new();
     private bool isLoading = true;
 
-    private IEnumerable<IGrouping<string, Manga>> GroupedMangas => 
-        allMangas.GroupBy(m => m.Title);
+    private IEnumerable<IGrouping<string, LightNovel>> GroupedLightNovels => 
+        allLightNovels.GroupBy(ln => ln.Title);
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadMangas();
+        await LoadLightNovels();
     }
 
-    private async Task LoadMangas()
+    private async Task LoadLightNovels()
     {
         isLoading = true;
-        allMangas = await MangaRepository.GetAllAsync();
+        allLightNovels = await LightNovelRepository.GetAllAsync();
         isLoading = false;
     }
 
-    private async Task SearchMangas()
+    private async Task SearchLightNovels()
     {
         isLoading = true;
         
         if (string.IsNullOrWhiteSpace(searchQuery))
         {
-            allMangas = await MangaRepository.GetAllAsync();
+            allLightNovels = await LightNovelRepository.GetAllAsync();
         }
         else
         {
-            allMangas = await MangaRepository.SearchByTitleAsync(searchQuery);
+            allLightNovels = await LightNovelRepository.SearchByTitleAsync(searchQuery);
         }
         
         isLoading = false;
@@ -129,15 +130,15 @@
     {
         if (args.Key == "Enter")
         {
-            await SearchMangas();
+            await SearchLightNovels();
         }
     }
 
-    private async Task OpenDeleteMangaDialog(Manga manga)
+    private async Task OpenDeleteLightNovelDialog(LightNovel lightNovel)
     {
         var parameters = new DialogParameters
         {
-            { "ContentText", $"Are you sure you want to delete '{manga.Title}' Volume {manga.Volume}? This action cannot be undone." },
+            { "ContentText", $"Are you sure you want to delete '{lightNovel.Title}' Volume {lightNovel.Volume}? This action cannot be undone." },
             { "ButtonText", "Delete" },
             { "Color", Color.Error }
         };
@@ -147,14 +148,14 @@
 
         if (!result.Canceled)
         {
-            await DeleteManga(manga.Id);
+            await DeleteLightNovel(lightNovel.Id);
         }
     }
 
     private async Task OpenDeleteCollectionDialog(string title = null)
     {
         string message = title == null 
-            ? "Are you sure you want to delete ALL manga collections? This action cannot be undone."
+            ? "Are you sure you want to delete ALL light novel collections? This action cannot be undone."
             : $"Are you sure you want to delete the entire '{title}' series? This action cannot be undone.";
 
         var parameters = new DialogParameters
@@ -171,28 +172,28 @@
         {
             if (title == null)
             {
-                await DeleteAllMangas();
+                await DeleteAllLightNovels();
             }
             else
             {
-                await DeleteMangaCollection(title);
+                await DeleteLightNovelCollection(title);
             }
         }
     }
 
-    private async Task DeleteManga(string id)
+    private async Task DeleteLightNovel(string id)
     {
         try
         {
-            var success = await MangaRepository.DeleteAsync(id);
+            var success = await LightNovelRepository.DeleteAsync(id);
             if (success)
             {
-                Snackbar.Add("Manga deleted successfully", Severity.Success);
-                await LoadMangas();
+                Snackbar.Add("Light Novel deleted successfully", Severity.Success);
+                await LoadLightNovels();
             }
             else
             {
-                Snackbar.Add("Failed to delete manga", Severity.Error);
+                Snackbar.Add("Failed to delete light novel", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -201,27 +202,27 @@
         }
     }
 
-    private async Task DeleteMangaCollection(string title)
+    private async Task DeleteLightNovelCollection(string title)
     {
         try
         {
-            var mangasToDelete = allMangas.Where(m => m.Title == title).ToList();
+            var lightNovelsToDelete = allLightNovels.Where(ln => ln.Title == title).ToList();
             int deleteCount = 0;
             
-            foreach (var manga in mangasToDelete)
+            foreach (var lightNovel in lightNovelsToDelete)
             {
-                var success = await MangaRepository.DeleteAsync(manga.Id);
+                var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
                 if (success) deleteCount++;
             }
 
             if (deleteCount > 0)
             {
-                Snackbar.Add($"Successfully deleted {deleteCount} manga volumes", Severity.Success);
-                await LoadMangas();
+                Snackbar.Add($"Successfully deleted {deleteCount} light novel volumes", Severity.Success);
+                await LoadLightNovels();
             }
             else
             {
-                Snackbar.Add("No manga volumes were deleted", Severity.Warning);
+                Snackbar.Add("No light novel volumes were deleted", Severity.Warning);
             }
         }
         catch (Exception ex)
@@ -230,26 +231,26 @@
         }
     }
 
-    private async Task DeleteAllMangas()
+    private async Task DeleteAllLightNovels()
     {
         try
         {
             int deleteCount = 0;
             
-            foreach (var manga in allMangas)
+            foreach (var lightNovel in allLightNovels)
             {
-                var success = await MangaRepository.DeleteAsync(manga.Id);
+                var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
                 if (success) deleteCount++;
             }
 
             if (deleteCount > 0)
             {
-                Snackbar.Add($"Successfully deleted {deleteCount} manga volumes", Severity.Success);
-                await LoadMangas();
+                Snackbar.Add($"Successfully deleted {deleteCount} light novel volumes", Severity.Success);
+                await LoadLightNovels();
             }
             else
             {
-                Snackbar.Add("No manga volumes were deleted", Severity.Warning);
+                Snackbar.Add("No light novel volumes were deleted", Severity.Warning);
             }
         }
         catch (Exception ex)

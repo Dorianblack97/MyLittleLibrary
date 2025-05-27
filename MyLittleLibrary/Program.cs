@@ -15,13 +15,15 @@ builder.Services.AddMudServices();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddSingleton<MangaRepository>(_ => {
-    var username = Environment.GetEnvironmentVariable("MONGODB_USERNAME");
-    var password = Environment.GetEnvironmentVariable("MONGODB_PASSWORD");
-    var connectionString = $"mongodb://{username}:{password}@mongodb:27017";
-    var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE");
-    return new MangaRepository(connectionString, databaseName);
-});
+var username = Environment.GetEnvironmentVariable("MONGODB_USERNAME");
+var password = Environment.GetEnvironmentVariable("MONGODB_PASSWORD");
+var connectionString = $"mongodb://{username}:{password}@mongodb:27017";
+var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE");
+
+builder.Services.AddSingleton<MangaRepository>(_ => new MangaRepository(connectionString, databaseName));
+
+builder.Services.AddSingleton<LightNovelRepository>(_ => new LightNovelRepository(connectionString, databaseName));
+
 
 
 var app = builder.Build();

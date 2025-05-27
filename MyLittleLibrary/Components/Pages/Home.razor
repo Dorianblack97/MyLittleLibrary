@@ -1,59 +1,295 @@
 ﻿@page "/"
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject MangaRepository MangaRepository
+@inject LightNovelRepository LightNovelRepository
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Home</PageTitle>
+<PageTitle>MyLittleLibrary - Your Digital Media Collection</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 9 Template!</MudText>
+@* Hero Section *@
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6">
+    <MudPaper Elevation="3" Class="pa-8 mb-6" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <MudGrid AlignItems="Center">
+            <MudItem xs="12" md="8">
+                <MudText Typo="Typo.h2" Class="mb-3">
+                    <MudIcon Icon="@Icons.Material.Filled.LocalLibrary" Size="Size.Large" Class="mr-3" />
+                    Welcome to MyLittleLibrary
+                </MudText>
+                <MudText Typo="Typo.h5" Class="mb-4" Style="opacity: 0.9;">
+                    Your Personal Digital Media Collection Hub
+                </MudText>
+                <MudText Typo="Typo.body1" Style="opacity: 0.8;">
+                    Organize, track, and discover your favorite films, manga, and light novels all in one place.
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="text-center">
+                <MudIcon Icon="@Icons.Material.Filled.Collections" Size="Size.Large" Style="font-size: 120px; opacity: 0.7;" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-<MudAlert Severity="Severity.Normal" ContentAlignment="HorizontalAlignment.Start">
-    You can find documentation and examples on our website here:
-    <MudLink Href="https://mudblazor.com" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        <b>www.mudblazor.com</b>
-    </MudLink>
-</MudAlert>
+    @* Quick Search Section *@
+    <MudPaper Elevation="2" Class="pa-4 mb-6">
+        <MudGrid AlignItems="Center">
+            <MudItem xs="12" md="8">
+                <MudTextField @bind-Value="searchQuery" 
+                             Placeholder="Search your collection..." 
+                             Adornment="Adornment.Start" 
+                             AdornmentIcon="@Icons.Material.Filled.Search"
+                             FullWidth="true"
+                             Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudButton Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          FullWidth="true"
+                          StartIcon="@Icons.Material.Filled.Search"
+                          OnClick="PerformSearch">
+                    Search Collection
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-<br/>
-<MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
-<br/>
-<MudText Typo="Typo.body2">
-    When you opt for the "Global" Interactivity Location, <br/>
-    the render modes are defined in App.razor and consequently apply to all child components.<br/>
-    In this case, providers are globally set in the MainLayout.<br/>
-    <br/>
-    On the other hand, if you choose the "Per page/component" Interactivity Location,<br/>
-    it is necessary to include the <br/>
-    <br/>
-    &lt;MudPopoverProvider /&gt; <br/>
-    &lt;MudDialogProvider /&gt; <br/>
-    &lt;MudSnackbarProvider /&gt; <br/>
-    <br/>
-    components on every interactive page.<br/>
-    <br/>
-    If a render mode is not specified for a page, it defaults to Server-Side Rendering (SSR),<br/>
-    similar to this page. While MudBlazor allows pages to be rendered in SSR,<br/>
-    please note that interactive features, such as buttons and dropdown menus, will not be functional.
-</MudText>
+    @* Statistics Cards *@
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Primary" Size="Size.Large" Class="mb-2" />
+                    <MudText Typo="Typo.h4" Color="Color.Primary">@filmCount</MudText>
+                    <MudText Typo="Typo.body2">Films</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" Class="mb-2" />
+                    <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaCount</MudText>
+                    <MudText Typo="Typo.body2">Manga</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Tertiary" Size="Size.Large" Class="mb-2" />
+                    <MudText Typo="Typo.h4" Color="Color.Tertiary">@lightNovelCount</MudText>
+                    <MudText Typo="Typo.body2">Light Novels</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
+                <MudCardContent>
+                    <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Color="Color.Success" Size="Size.Large" Class="mb-2" />
+                    <MudText Typo="Typo.h4" Color="Color.Success">@totalCount</MudText>
+                    <MudText Typo="Typo.body2">Total Items</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
 
-<br/>
-<MudText Typo="Typo.h5" GutterBottom="true">What's New in Blazor with the Release of .NET 9</MudText>
-<br/>
+    @* Quick Actions Section *@
+    <MudText Typo="Typo.h4" Class="mb-4">Quick Actions</MudText>
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="3" Class="d-flex flex-column" Style="height: 240px;">
+                <MudCardContent Class="flex-grow-1 text-center pa-4">
+                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Primary" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Films</MudText>
+                    <MudText Typo="Typo.body2">Browse and manage your film collection</MudText>
+                </MudCardContent>
+                <MudCardActions Class="justify-center pa-3">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/film" StartIcon="@Icons.Material.Filled.Visibility">
+                        View Films
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="3" Class="d-flex flex-column" Style="height: 240px;">
+                <MudCardContent Class="flex-grow-1 text-center pa-4">
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Manga</MudText>
+                    <MudText Typo="Typo.body2">Explore your manga series and chapters</MudText>
+                </MudCardContent>
+                <MudCardActions Class="justify-center pa-3">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/manga" StartIcon="@Icons.Material.Filled.Visibility">
+                        View Manga
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudCard Elevation="3" Class="d-flex flex-column" Style="height: 240px;">
+                <MudCardContent Class="flex-grow-1 text-center pa-4">
+                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Tertiary" Size="Size.Large" Class="mb-3" />
+                    <MudText Typo="Typo.h6" Class="mb-2">Light Novels</MudText>
+                    <MudText Typo="Typo.body2">Discover your light novel collection</MudText>
+                </MudCardContent>
+                <MudCardActions Class="justify-center pa-3">
+                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Href="/lightnovel" StartIcon="@Icons.Material.Filled.Visibility">
+                        View Novels
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
 
-<MudText Typo="Typo.h6" GutterBottom="true">Prerendering</MudText>
-<MudText Typo="Typo.body2" GutterBottom="true">
-    If you're exploring the features of .NET 9 Blazor,<br/> you might be pleasantly surprised to learn that each page is prerendered on the server,<br/> regardless of the selected render mode.<br/><br/>
-    This means that you'll need to inject all necessary services on the server,<br/> even when opting for the wasm (WebAssembly) render mode.<br/><br/>
-    This prerendering functionality is crucial to ensuring that WebAssembly mode feels fast and responsive,<br/> especially when it comes to initial page load times.<br/><br/>
-    For more information on how to detect prerendering and leverage the RenderContext, you can refer to the following link:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issuecomment-1783568121" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+    @* Recently Added Section *@
+    <MudText Typo="Typo.h4" Class="mb-4">Recently Added</MudText>
+    <MudGrid Class="mb-6">
+        @if (recentItems?.Any() == true)
+        {
+            @foreach (var item in recentItems.Take(4))
+            {
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Style="height: 250px;">
+                        <MudCardMedia Image="@GetItemImage(item)" Height="150" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.subtitle1" Class="mb-1">@GetItemTitle(item)</MudText>
+                            <MudChip T="string" Color="@GetItemTypeColor(item)" Size="Size.Small">@GetItemType(item)</MudChip>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+        else
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Class="mb-4">
+                    <MudText>No items in your collection yet. Start by adding some films, manga, or light novels!</MudText>
+                </MudAlert>
+            </MudItem>
+        }
+    </MudGrid>
 
-<br/>
-<MudText Typo="Typo.h6" GutterBottom="true">InteractiveAuto</MudText>
-<MudText Typo="Typo.body2">
-    A discussion on how to achieve this can be found here:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issue-1950424116" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+    @* Add New Content Section *@
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h5" Class="mb-4 text-center">Add New Content</MudText>
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" sm="4" md="3">
+                <MudButton Variant="Variant.Outlined" 
+                          Color="Color.Primary" 
+                          FullWidth="true"
+                          StartIcon="@Icons.Material.Filled.Add"
+                          Size="Size.Large"
+                          Class="pa-4">
+                    Add Film
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="4" md="3">
+                <MudButton Variant="Variant.Outlined" 
+                          Color="Color.Secondary" 
+                          FullWidth="true"
+                          StartIcon="@Icons.Material.Filled.Add"
+                          Size="Size.Large"
+                          Class="pa-4">
+                    Add Manga
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="4" md="3">
+                <MudButton Variant="Variant.Outlined" 
+                          Color="Color.Tertiary" 
+                          FullWidth="true"
+                          StartIcon="@Icons.Material.Filled.Add"
+                          Size="Size.Large"
+                          Class="pa-4">
+                    Add Light Novel
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string searchQuery = "";
+    private int filmCount = 0;
+    private int mangaCount = 0;
+    private int lightNovelCount = 0;
+    private int totalCount => filmCount + mangaCount + lightNovelCount;
+    private List<object> recentItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatistics();
+        await LoadRecentItems();
+    }
+
+    private async Task LoadStatistics()
+    {
+        // TODO: Replace with actual service calls
+        // Example:
+        // filmCount = await FilmService.GetCountAsync();
+        var mangaList = await MangaRepository.GetAllAsync();
+        var lightNovelList= await LightNovelRepository.GetAllAsync();
+        
+        // Mock data for demonstration
+        filmCount = 42;
+        mangaCount = mangaList.Count;
+        lightNovelCount = lightNovelList.Count;
+    }
+
+    private async Task LoadRecentItems()
+    {
+        // TODO: Replace with actual service calls to get recent items
+        // Example:
+        // var recentFilms = await FilmService.GetRecentAsync(2);
+        // var recentManga = await MangaService.GetRecentAsync(2);
+        // var recentNovels = await LightNovelService.GetRecentAsync(2);
+        // recentItems = recentFilms.Cast<object>().Concat(recentManga.Cast<object>()).Concat(recentNovels.Cast<object>()).ToList();
+        
+        // Mock data for demonstration
+        recentItems = new List<object>();
+    }
+
+    private async Task PerformSearch()
+    {
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            // TODO: Implement search functionality
+            // Navigate to search results page or filter current view
+            await JSRuntime.InvokeVoidAsync("console.log", $"Searching for: {searchQuery}");
+        }
+    }
+
+    private string GetItemImage(object item)
+    {
+        // TODO: Return actual image URL based on item type
+        return "/images/placeholder.jpg";
+    }
+
+    private string GetItemTitle(object item)
+    {
+        // TODO: Return actual title based on item type
+        return item switch
+        {
+            Manga manga => manga.Title ?? "Unknown Manga",
+            LightNovel novel => novel.Title ?? "Unknown Novel",
+            _ => "Unknown Item"
+        };
+    }
+
+    private string GetItemType(object item)
+    {
+        return item switch
+        {
+            Manga => "Manga",
+            LightNovel => "Light Novel",
+            _ => "Film"
+        };
+    }
+
+    private Color GetItemTypeColor(object item)
+    {
+        return item switch
+        {
+            Manga => Color.Secondary,
+            LightNovel => Color.Tertiary,
+            _ => Color.Primary
+        };
+    }
+}

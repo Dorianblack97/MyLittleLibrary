@@ -49,9 +49,19 @@ public class MangaRepository
     // Update
     public async Task<bool> UpdateAsync(string id, Manga updatedManga)
     {
-        var result = await _collection.ReplaceOneAsync(
+        var update = Builders<Manga>.Update
+            .Set(m => m.Title, updatedManga.Title)
+            .Set(m => m.TitleSlug, updatedManga.TitleSlug)
+            .Set(m => m.Author, updatedManga.Author)
+            .Set(m => m.Volume, updatedManga.Volume)
+            .Set(m => m.ImagePath, updatedManga.ImagePath)
+            .Set(m => m.IsDigital, updatedManga.IsDigital)
+            .Set(m => m.IsRead, updatedManga.IsRead)
+            .Set(m => m.PublishDate, updatedManga.PublishDate);
+    
+        var result = await _collection.UpdateOneAsync(
             m => m.Id == id,
-            updatedManga);
+            update);
 
         return result.IsAcknowledged && result.ModifiedCount > 0;
     }

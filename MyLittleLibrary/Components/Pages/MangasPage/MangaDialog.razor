@@ -2,14 +2,15 @@
 @using MyLittleLibrary.Infrastructure
 @using System.IO
 @using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.Hosting
 @inject MangaRepository MangaRepository
 @inject IWebHostEnvironment Environment
 
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2"/>
-            Add New Manga
+            <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.Add)" Class="mr-2"/>
+            @(IsEdit ? "Edit Manga" : "Add New Manga")
         </MudText>
     </TitleContent>
     <DialogContent>
@@ -53,10 +54,10 @@
                     }
                 </MudItem>
                 <MudItem xs="6">
-                    <MudSwitch T="bool" @bind-Checked="manga.IsDigital" Label="Digital Copy" Color="Color.Primary"/>
+                    <MudSwitch @bind-Value="isDigital" Label="Digital Copy" Color="Color.Primary"/>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudSwitch T="bool" @bind-Checked="manga.IsRead" Label="Already Read" Color="Color.Secondary"/>
+                    <MudSwitch @bind-Value="isRead" Label="Already Read" Color="Color.Secondary"/>
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -82,19 +83,54 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    
+    [Parameter] public Manga? MangaToEdit { get; set; }
+    [Parameter] public bool IsEdit { get; set; } = false;
 
-    private MangaMutable manga = new();
+    private MangaMutable manga;
     private DateTime? publishDate;
     private bool success = false;
     private bool isSubmitting = false;
     private MudForm form;
     private IBrowserFile? uploadedFile;
-    private string originalFileExtension;
+    private string originalFileExtension = string.Empty;
+    private string originalId = string.Empty;
+    private string originalTitleSlug = string.Empty;
+    
+    // Store switch values in separate fields to better handle binding
+    private bool isDigital;
+    private bool isRead;
+
+    protected override void OnInitialized()
+    {
+        // Initialize with default or existing manga data
+        manga = new MangaMutable();
+        
+        if (MangaToEdit is not null)
+        {
+            // Store original values
+            originalId = MangaToEdit.Id;
+            originalTitleSlug = MangaToEdit.TitleSlug;
+            
+            // Initialize form with existing manga data
+            manga.SetTitle(MangaToEdit.Title);
+            manga.Author = MangaToEdit.Author;
+            manga.Volume = MangaToEdit.Volume;
+            manga.ImagePath = MangaToEdit.ImagePath;
+            manga.SetTitleSlug(MangaToEdit.TitleSlug);
+            publishDate = MangaToEdit.PublishDate;
+            
+            // Initialize switch values from existing manga
+            isDigital = MangaToEdit.IsDigital;
+            isRead = MangaToEdit.IsRead;
+        }
+    }
 
     // A mutable class to work with form binding
     private class MangaMutable
     {
         private string _title = string.Empty;
+        private string _titleSlug = string.Empty;
 
         public string Title
         {
@@ -102,17 +138,35 @@
             set
             {
                 _title = value;
-                // Update the slug whenever title changes
-                TitleSlug = GenerateSlug(value);
+                // Only auto-generate slug if it hasn't been set manually
+                if (string.IsNullOrEmpty(_titleSlug))
+                {
+                    _titleSlug = GenerateSlug(value);
+                }
             }
         }
 
-        public string TitleSlug { get; private set; } = string.Empty;
+        public string TitleSlug 
+        { 
+            get => _titleSlug; 
+            private set => _titleSlug = value; 
+        }
+        
         public string Author { get; set; } = string.Empty;
         public int Volume { get; set; } = 1;
         public string? ImagePath { get; set; }
-        public bool IsDigital { get; set; }
-        public bool IsRead { get; set; }
+
+        // For setting title without triggering slug generation (used for existing records)
+        public void SetTitle(string title)
+        {
+            _title = title;
+        }
+
+        // For setting slug directly (used for existing records)
+        public void SetTitleSlug(string slug)
+        {
+            _titleSlug = slug;
+        }
 
         // Helper method to generate slug from title
         private string GenerateSlug(string title)
@@ -162,10 +216,15 @@
 
             try
             {
+                // Use the original title slug for existing manga to maintain consistency
+                string titleSlugToUse = IsEdit ? originalTitleSlug : manga.TitleSlug;
+                
                 // Update image path one more time to ensure it uses latest title/volume
                 if (uploadedFile != null)
                 {
-                    UpdateImagePath();
+                    // For edit mode, keep file naming consistent with original slug
+                    var fileName = $"{titleSlugToUse}_{manga.Volume}{originalFileExtension}";
+                    manga.ImagePath = Path.Combine("images", titleSlugToUse, fileName);
 
                     var filePath = Path.Combine(Environment.WebRootPath, manga.ImagePath!);
 
@@ -173,26 +232,34 @@
                     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
                     // Save the file to disk
-                    using var fileStream = new FileStream(filePath, FileMode.Create);
+                    await using var fileStream = new FileStream(filePath, FileMode.Create);
                     await uploadedFile.OpenReadStream(maxAllowedSize: 10485760).CopyToAsync(fileStream);
                 }
 
                 // Convert from mutable model to immutable record
-                var mangaToAdd = new Manga(
+                var mangaRecord = new Manga(
                     manga.Title,
-                    manga.TitleSlug,
+                    titleSlugToUse,
                     manga.Author,
                     manga.Volume,
                     manga.ImagePath,
-                    manga.IsDigital,
-                    manga.IsRead,
-                    publishDate
+                    isDigital,   // Use the directly bound switch value
+                    isRead,      // Use the directly bound switch value
+                    publishDate,
+                    IsEdit ? originalId : null
                 );
 
-                await MangaRepository.CreateAsync(mangaToAdd);
+                if (IsEdit)
+                {
+                    await MangaRepository.UpdateAsync(originalId, mangaRecord);
+                }
+                else
+                {
+                    await MangaRepository.CreateAsync(mangaRecord);
+                }
 
-                // Return the new manga to the caller
-                MudDialog.Close(DialogResult.Ok(mangaToAdd));
+                // Return the manga to the caller
+                MudDialog.Close(DialogResult.Ok(mangaRecord));
             }
             catch (Exception ex)
             {
@@ -201,5 +268,4 @@
             }
         }
     }
-
 }

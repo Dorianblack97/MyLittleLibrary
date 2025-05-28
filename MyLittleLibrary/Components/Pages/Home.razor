@@ -3,17 +3,19 @@
 @using MyLittleLibrary.Infrastructure
 @inject MangaRepository MangaRepository
 @inject LightNovelRepository LightNovelRepository
+@inject BaseObjectRepository BaseObjectRepository
 @inject IJSRuntime JSRuntime
 
 <PageTitle>MyLittleLibrary - Your Digital Media Collection</PageTitle>
 
 @* Hero Section *@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6">
-    <MudPaper Elevation="3" Class="pa-8 mb-6" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+    <MudPaper Elevation="3" Class="pa-8 mb-6"
+              Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
         <MudGrid AlignItems="Center">
             <MudItem xs="12" md="8">
                 <MudText Typo="Typo.h2" Class="mb-3">
-                    <MudIcon Icon="@Icons.Material.Filled.LocalLibrary" Size="Size.Large" Class="mr-3" />
+                    <MudIcon Icon="@Icons.Material.Filled.LocalLibrary" Size="Size.Large" Class="mr-3"/>
                     Welcome to MyLittleLibrary
                 </MudText>
                 <MudText Typo="Typo.h5" Class="mb-4" Style="opacity: 0.9;">
@@ -24,7 +26,8 @@
                 </MudText>
             </MudItem>
             <MudItem xs="12" md="4" Class="text-center">
-                <MudIcon Icon="@Icons.Material.Filled.Collections" Size="Size.Large" Style="font-size: 120px; opacity: 0.7;" />
+                <MudIcon Icon="@Icons.Material.Filled.Collections" Size="Size.Large"
+                         Style="font-size: 120px; opacity: 0.7;"/>
             </MudItem>
         </MudGrid>
     </MudPaper>
@@ -33,19 +36,19 @@
     <MudPaper Elevation="2" Class="pa-4 mb-6">
         <MudGrid AlignItems="Center">
             <MudItem xs="12" md="8">
-                <MudTextField @bind-Value="searchQuery" 
-                             Placeholder="Search your collection..." 
-                             Adornment="Adornment.Start" 
-                             AdornmentIcon="@Icons.Material.Filled.Search"
-                             FullWidth="true"
-                             Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="searchQuery"
+                              Placeholder="Search your collection..."
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              FullWidth="true"
+                              Variant="Variant.Outlined"/>
             </MudItem>
-            <MudItem xs="12" md="4">
-                <MudButton Variant="Variant.Filled" 
-                          Color="Color.Primary" 
-                          FullWidth="true"
-                          StartIcon="@Icons.Material.Filled.Search"
-                          OnClick="PerformSearch">
+            <MudItem xs="12" md="4" Class="d-flex align-center">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Search"
+                           OnClick="PerformSearch">
                     Search Collection
                 </MudButton>
             </MudItem>
@@ -57,7 +60,7 @@
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Primary" Size="Size.Large" Class="mb-2" />
+                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Primary" Size="Size.Large" Class="mb-2"/>
                     <MudText Typo="Typo.h4" Color="Color.Primary">@filmCount</MudText>
                     <MudText Typo="Typo.body2">Films</MudText>
                 </MudCardContent>
@@ -66,7 +69,8 @@
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" Class="mb-2" />
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large"
+                             Class="mb-2"/>
                     <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaCount</MudText>
                     <MudText Typo="Typo.body2">Manga</MudText>
                 </MudCardContent>
@@ -75,7 +79,8 @@
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Tertiary" Size="Size.Large" Class="mb-2" />
+                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Tertiary" Size="Size.Large"
+                             Class="mb-2"/>
                     <MudText Typo="Typo.h4" Color="Color.Tertiary">@lightNovelCount</MudText>
                     <MudText Typo="Typo.body2">Light Novels</MudText>
                 </MudCardContent>
@@ -84,7 +89,8 @@
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Color="Color.Success" Size="Size.Large" Class="mb-2" />
+                    <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Color="Color.Success" Size="Size.Large"
+                             Class="mb-2"/>
                     <MudText Typo="Typo.h4" Color="Color.Success">@totalCount</MudText>
                     <MudText Typo="Typo.body2">Total Items</MudText>
                 </MudCardContent>
@@ -98,12 +104,13 @@
         <MudItem xs="12" md="4">
             <MudCard Elevation="3" Class="d-flex flex-column" Style="height: 240px;">
                 <MudCardContent Class="flex-grow-1 text-center pa-4">
-                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Primary" Size="Size.Large" Class="mb-3" />
+                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Primary" Size="Size.Large" Class="mb-3"/>
                     <MudText Typo="Typo.h6" Class="mb-2">Films</MudText>
                     <MudText Typo="Typo.body2">Browse and manage your film collection</MudText>
                 </MudCardContent>
                 <MudCardActions Class="justify-center pa-3">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/film" StartIcon="@Icons.Material.Filled.Visibility">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/film"
+                               StartIcon="@Icons.Material.Filled.Visibility">
                         View Films
                     </MudButton>
                 </MudCardActions>
@@ -112,12 +119,14 @@
         <MudItem xs="12" md="4">
             <MudCard Elevation="3" Class="d-flex flex-column" Style="height: 240px;">
                 <MudCardContent Class="flex-grow-1 text-center pa-4">
-                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" Class="mb-3" />
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large"
+                             Class="mb-3"/>
                     <MudText Typo="Typo.h6" Class="mb-2">Manga</MudText>
                     <MudText Typo="Typo.body2">Explore your manga series and chapters</MudText>
                 </MudCardContent>
                 <MudCardActions Class="justify-center pa-3">
-                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/manga" StartIcon="@Icons.Material.Filled.Visibility">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/manga"
+                               StartIcon="@Icons.Material.Filled.Visibility">
                         View Manga
                     </MudButton>
                 </MudCardActions>
@@ -126,12 +135,14 @@
         <MudItem xs="12" md="4">
             <MudCard Elevation="3" Class="d-flex flex-column" Style="height: 240px;">
                 <MudCardContent Class="flex-grow-1 text-center pa-4">
-                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Tertiary" Size="Size.Large" Class="mb-3" />
+                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Tertiary" Size="Size.Large"
+                             Class="mb-3"/>
                     <MudText Typo="Typo.h6" Class="mb-2">Light Novels</MudText>
                     <MudText Typo="Typo.body2">Discover your light novel collection</MudText>
                 </MudCardContent>
                 <MudCardActions Class="justify-center pa-3">
-                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Href="/lightnovel" StartIcon="@Icons.Material.Filled.Visibility">
+                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Href="/lightnovel"
+                               StartIcon="@Icons.Material.Filled.Visibility">
                         View Novels
                     </MudButton>
                 </MudCardActions>
@@ -148,10 +159,11 @@
             {
                 <MudItem xs="12" sm="6" md="3">
                     <MudCard Elevation="2" Style="height: 250px;">
-                        <MudCardMedia Image="@GetItemImage(item)" Height="150" />
+                        <MudCardMedia Image="@item.ImagePath" Height="150"/>
                         <MudCardContent>
-                            <MudText Typo="Typo.subtitle1" Class="mb-1">@GetItemTitle(item)</MudText>
-                            <MudChip T="string" Color="@GetItemTypeColor(item)" Size="Size.Small">@GetItemType(item)</MudChip>
+                            <MudText Typo="Typo.subtitle1" Class="mb-1">@item.Title</MudText>
+                            <MudChip T="string" Color="@GetItemTypeColor(item.CollectionType)"
+                                     Size="Size.Small">@GetItemType(item.CollectionType)</MudChip>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
@@ -161,7 +173,8 @@
         {
             <MudItem xs="12">
                 <MudAlert Severity="Severity.Info" Class="mb-4">
-                    <MudText>No items in your collection yet. Start by adding some films, manga, or light novels!</MudText>
+                    <MudText>No items in your collection yet. Start by adding some films, manga, or light novels!
+                    </MudText>
                 </MudAlert>
             </MudItem>
         }
@@ -172,32 +185,32 @@
         <MudText Typo="Typo.h5" Class="mb-4 text-center">Add New Content</MudText>
         <MudGrid Justify="Justify.Center">
             <MudItem xs="12" sm="4" md="3">
-                <MudButton Variant="Variant.Outlined" 
-                          Color="Color.Primary" 
-                          FullWidth="true"
-                          StartIcon="@Icons.Material.Filled.Add"
-                          Size="Size.Large"
-                          Class="pa-4">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           Size="Size.Large"
+                           Class="pa-4">
                     Add Film
                 </MudButton>
             </MudItem>
             <MudItem xs="12" sm="4" md="3">
-                <MudButton Variant="Variant.Outlined" 
-                          Color="Color.Secondary" 
-                          FullWidth="true"
-                          StartIcon="@Icons.Material.Filled.Add"
-                          Size="Size.Large"
-                          Class="pa-4">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Secondary"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           Size="Size.Large"
+                           Class="pa-4">
                     Add Manga
                 </MudButton>
             </MudItem>
             <MudItem xs="12" sm="4" md="3">
-                <MudButton Variant="Variant.Outlined" 
-                          Color="Color.Tertiary" 
-                          FullWidth="true"
-                          StartIcon="@Icons.Material.Filled.Add"
-                          Size="Size.Large"
-                          Class="pa-4">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Tertiary"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           Size="Size.Large"
+                           Class="pa-4">
                     Add Light Novel
                 </MudButton>
             </MudItem>
@@ -211,7 +224,7 @@
     private int mangaCount = 0;
     private int lightNovelCount = 0;
     private int totalCount => filmCount + mangaCount + lightNovelCount;
-    private List<object> recentItems = new();
+    private List<BaseObject> recentItems = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -225,8 +238,8 @@
         // Example:
         // filmCount = await FilmService.GetCountAsync();
         var mangaList = await MangaRepository.GetAllAsync();
-        var lightNovelList= await LightNovelRepository.GetAllAsync();
-        
+        var lightNovelList = await LightNovelRepository.GetAllAsync();
+
         // Mock data for demonstration
         filmCount = 42;
         mangaCount = mangaList.Count;
@@ -235,15 +248,7 @@
 
     private async Task LoadRecentItems()
     {
-        // TODO: Replace with actual service calls to get recent items
-        // Example:
-        // var recentFilms = await FilmService.GetRecentAsync(2);
-        // var recentManga = await MangaService.GetRecentAsync(2);
-        // var recentNovels = await LightNovelService.GetRecentAsync(2);
-        // recentItems = recentFilms.Cast<object>().Concat(recentManga.Cast<object>()).Concat(recentNovels.Cast<object>()).ToList();
-        
-        // Mock data for demonstration
-        recentItems = new List<object>();
+        recentItems = await BaseObjectRepository.GetMostRecentAsync();
     }
 
     private async Task PerformSearch()
@@ -256,40 +261,26 @@
         }
     }
 
-    private string GetItemImage(object item)
+    private string GetItemType(Collection item)
     {
-        // TODO: Return actual image URL based on item type
-        return "/images/placeholder.jpg";
-    }
-
-    private string GetItemTitle(object item)
-    {
-        // TODO: Return actual title based on item type
         return item switch
         {
-            Book.Manga manga => manga.Title ?? "Unknown Manga",
-            Book.LightNovel novel => novel.Title ?? "Unknown Novel",
-            _ => "Unknown Item"
+            Collection.Manga => "Manga",
+            Collection.LightNovel => "Light Novel",
+            Collection.Book => "Book",
+            Collection.Film => "Film",
+            _ => "Unknown"
         };
     }
 
-    private string GetItemType(object item)
+    private Color GetItemTypeColor(Collection item)
     {
         return item switch
         {
-            Book.Manga => "Manga",
-            Book.LightNovel => "Light Novel",
-            _ => "Film"
-        };
-    }
-
-    private Color GetItemTypeColor(object item)
-    {
-        return item switch
-        {
-            Book.Manga => Color.Secondary,
-            Book.LightNovel => Color.Tertiary,
+            Collection.Manga => Color.Secondary,
+            Collection.LightNovel => Color.Tertiary,
             _ => Color.Primary
         };
     }
+
 }

@@ -1,6 +1,8 @@
-﻿using MongoDB.Bson;
+﻿using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MyLittleLibrary.Domain;
+using MyLittleLibrary.Infrastructure.Options;
 
 namespace MyLittleLibrary.Infrastructure;
 
@@ -8,11 +10,11 @@ public class MangaRepository
 {
     private readonly IMongoCollection<Book.Manga> _collection;
 
-    public MangaRepository(string connectionString, string databaseName)
+    public MangaRepository(IOptions<MongoOptions> options)
     {
-        var client = new MongoClient(connectionString);
-        var database = client.GetDatabase(databaseName);
-        _collection = database.GetCollection<Book.Manga>("Mangas");
+        var client = new MongoClient(options.Value.ConnectionString);
+        var database = client.GetDatabase(options.Value.DatabaseName);
+        _collection = database.GetCollection<Book.Manga>(Contracts.MongoCollection);
     }
 
     // Create
@@ -23,28 +25,20 @@ public class MangaRepository
     }
 
     // Read - Get all
-    public async Task<List<Book.Manga>> GetAllAsync()
-    {
-        return await _collection.Find(_ => true).ToListAsync();
-    }
-    
+    public async Task<List<Book.Manga>> GetAllAsync() 
+        => await _collection.Find(m => m.CollectionType == Collection.Manga).ToListAsync();
+
     // Read - Get all by title
-    public async Task<List<Book.Manga>> GetAllByTitleAsync(string title)
-    {
-        return await _collection.Find(m => m.Title == title).ToListAsync();
-    }
+    public async Task<List<Book.Manga>> GetAllByTitleAsync(string title) 
+        => await _collection.Find(m => m.Title == title && m.CollectionType == Collection.Manga).ToListAsync();
 
     // Read - Get by ID
-    public async Task<Book.Manga> GetByIdAsync(string id)
-    {
-        return await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
-    }
+    public async Task<Book.Manga> GetByIdAsync(string id) 
+        => await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
 
     // Read - Get by title
-    public async Task<Book.Manga> GetByTitleAsync(string title)
-    {
-        return await _collection.Find(m => m.Title == title).FirstOrDefaultAsync();
-    }
+    public async Task<Book.Manga> GetByTitleAsync(string title) 
+        => await _collection.Find(m => m.Title == title && m.CollectionType == Collection.Manga).FirstOrDefaultAsync();
 
     // Update
     public async Task<bool> UpdateAsync(string id, Book.Manga updatedManga)
@@ -77,7 +71,10 @@ public class MangaRepository
     // Search by title (partial match)
     public async Task<List<Book.Manga>> SearchByTitleAsync(string titleQuery)
     {
-        var filter = Builders<Book.Manga>.Filter.Regex(m => m.Title, new BsonRegularExpression(titleQuery, "i"));
+        var filter = Builders<Book.Manga>.Filter.And(
+            Builders<Book.Manga>.Filter.Regex(m => m.Title, new BsonRegularExpression(titleQuery, "i")),
+            Builders<Book.Manga>.Filter.Eq(m => m.CollectionType, Collection.Manga)
+        );
         return await _collection.Find(filter).ToListAsync();
     }
 }

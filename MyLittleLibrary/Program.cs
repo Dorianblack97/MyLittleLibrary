@@ -1,10 +1,7 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using MudBlazor.Services;
 using MyLittleLibrary.Components;
 using MyLittleLibrary.Infrastructure;
+using MyLittleLibrary.Infrastructure.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,11 +17,19 @@ var password = Environment.GetEnvironmentVariable("MONGODB_PASSWORD");
 var connectionString = $"mongodb://{username}:{password}@mongodb:27017";
 var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE");
 
-builder.Services.AddSingleton<MangaRepository>(_ => new MangaRepository(connectionString, databaseName));
+builder.Services.Configure<MongoOptions>(options =>
+{
+    options.ConnectionString = connectionString;
+    options.DatabaseName = databaseName;
+});
 
-builder.Services.AddSingleton<LightNovelRepository>(_ => new LightNovelRepository(connectionString, databaseName));
+builder.Services.AddOptions<MongoOptions>();
 
-
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<MangaRepository>()
+    .AddClasses(classes => classes.InExactNamespaceOf<MangaRepository>())
+    .AsSelf()
+    .WithSingletonLifetime());
 
 var app = builder.Build();
 

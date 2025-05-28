@@ -92,10 +92,10 @@
 
 @code {
     private string searchQuery = "";
-    private List<LightNovel> allLightNovels = new();
+    private List<Book.LightNovel> allLightNovels = new();
     private bool isLoading = true;
 
-    private IEnumerable<IGrouping<string, LightNovel>> GroupedLightNovels => 
+    private IEnumerable<IGrouping<string, Book.LightNovel>> GroupedLightNovels => 
         allLightNovels.GroupBy(ln => ln.Title);
 
     protected override async Task OnInitializedAsync()
@@ -134,7 +134,7 @@
         }
     }
 
-    private async Task OpenDeleteLightNovelDialog(LightNovel lightNovel)
+    private async Task OpenDeleteLightNovelDialog(Book.LightNovel lightNovel)
     {
         var parameters = new DialogParameters
         {

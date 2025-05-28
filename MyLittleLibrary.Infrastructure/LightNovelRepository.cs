@@ -6,50 +6,50 @@ namespace MyLittleLibrary.Infrastructure;
 
 public class LightNovelRepository
 {
-    private readonly IMongoCollection<LightNovel> _collection;
+    private readonly IMongoCollection<Book.LightNovel> _collection;
 
     public LightNovelRepository(string connectionString, string databaseName)
     {
         var client = new MongoClient(connectionString);
         var database = client.GetDatabase(databaseName);
-        _collection = database.GetCollection<LightNovel>("LightNovels");
+        _collection = database.GetCollection<Book.LightNovel>("LightNovels");
     }
 
     // Create
-    public async Task<LightNovel> CreateAsync(LightNovel LightNovel)
+    public async Task<Book.LightNovel> CreateAsync(Book.LightNovel LightNovel)
     {
         await _collection.InsertOneAsync(LightNovel);
         return LightNovel;
     }
 
     // Read - Get all
-    public async Task<List<LightNovel>> GetAllAsync()
+    public async Task<List<Book.LightNovel>> GetAllAsync()
     {
         return await _collection.Find(_ => true).ToListAsync();
     }
     
     // Read - Get all by title
-    public async Task<List<LightNovel>> GetAllByTitleAsync(string title)
+    public async Task<List<Book.LightNovel>> GetAllByTitleAsync(string title)
     {
         return await _collection.Find(m => m.Title == title).ToListAsync();
     }
 
     // Read - Get by ID
-    public async Task<LightNovel> GetByIdAsync(string id)
+    public async Task<Book.LightNovel> GetByIdAsync(string id)
     {
         return await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
     }
 
     // Read - Get by title
-    public async Task<LightNovel> GetByTitleAsync(string title)
+    public async Task<Book.LightNovel> GetByTitleAsync(string title)
     {
         return await _collection.Find(m => m.Title == title).FirstOrDefaultAsync();
     }
 
     // Update
-    public async Task<bool> UpdateAsync(string id, LightNovel updatedLightNovel)
+    public async Task<bool> UpdateAsync(string id, Book.LightNovel updatedLightNovel)
     {
-        var update = Builders<LightNovel>.Update
+        var update = Builders<Book.LightNovel>.Update
             .Set(m => m.Title, updatedLightNovel.Title)
             .Set(m => m.TitleSlug, updatedLightNovel.TitleSlug)
             .Set(m => m.Author, updatedLightNovel.Author)
@@ -75,9 +75,9 @@ public class LightNovelRepository
     }
 
     // Search by title (partial match)
-    public async Task<List<LightNovel>> SearchByTitleAsync(string titleQuery)
+    public async Task<List<Book.LightNovel>> SearchByTitleAsync(string titleQuery)
     {
-        var filter = Builders<LightNovel>.Filter.Regex(m => m.Title, new BsonRegularExpression(titleQuery, "i"));
+        var filter = Builders<Book.LightNovel>.Filter.Regex(m => m.Title, new BsonRegularExpression(titleQuery, "i"));
         return await _collection.Find(filter).ToListAsync();
     }
 }

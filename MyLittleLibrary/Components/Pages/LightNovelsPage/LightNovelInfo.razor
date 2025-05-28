@@ -85,7 +85,7 @@
     [SupplyParameterFromQuery]
     public required string Title { get; set; }
     
-    private List<LightNovel> lightNovelVolumes = new();
+    private List<Book.LightNovel> lightNovelVolumes = new();
     private bool isLoading = true;
     private bool showImagePreview = false;
     private string previewImagePath = string.Empty;
@@ -124,14 +124,14 @@
         }
     }
 
-    private async Task OnChipClicked(LightNovel lightNovel)
+    private async Task OnChipClicked(Book.LightNovel lightNovel)
     {
         var updatedLightNovel = lightNovel with { IsRead = !lightNovel.IsRead };
         await LightNovelRepository.UpdateAsync(updatedLightNovel.Id, updatedLightNovel);
         await LoadLightNovelVolumes();
     }
     
-    private async Task OpenEditDialog(LightNovel lightNovel)
+    private async Task OpenEditDialog(Book.LightNovel lightNovel)
     {
         var parameters = new DialogParameters
         {
@@ -163,7 +163,7 @@
         {
             // Create a new light novel object with the title pre-filled
             var lightNovelBase = lightNovelVolumes.Last();
-            var newLightNovel = new LightNovel(
+            var newLightNovel = new Book.LightNovel(
                 title: lightNovelBase.Title,
                 titleSlug: lightNovelBase.TitleSlug,
                 author: lightNovelBase.Author,

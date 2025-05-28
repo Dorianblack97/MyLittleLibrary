@@ -1,30 +1,79 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+﻿namespace MyLittleLibrary.Domain;
 
-namespace MyLittleLibrary.Domain;
-
-public record Book
+public record Book : BaseObject
 {
-    public Book(string title, string titleSlug, string author, string? imagePath, bool isDigital,
-        bool isRead, DateTime? publishDate, string id = null)
+    private Book(string title, string titleSlug, string? imagePath, Collection collection, string id = null) : 
+        base(title, titleSlug, imagePath, collection, DateTime.UtcNow)
+    { }
+
+    public sealed record Standard : Book
     {
-        Title = title;
-        TitleSlug = titleSlug;
-        Author = author;
-        ImagePath = imagePath;
-        IsDigital = isDigital;
-        IsRead = isRead;
-        PublishDate = publishDate;
+        public Standard(string title, string titleSlug, string author, string? imagePath,
+            bool isDigital, bool isRead, DateTime? publishDate, string id = null)
+            : base(title, titleSlug, imagePath, Collection.Book, id)
+        {
+            Title = title;
+            TitleSlug = titleSlug;
+            Author = author;
+            ImagePath = imagePath;
+            IsDigital = isDigital;
+            IsRead = isRead;
+            PublishDate = publishDate;
+        }
+
+        public string Author { get; init; }
+        public bool IsDigital { get; init; }
+        public bool IsRead { get; init; }
+        public DateTime? PublishDate { get; init; }
     }
 
-    [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; init; } = ObjectId.GenerateNewId().ToString();
-    public string Title { get; init; }
-    public string TitleSlug { get; init; }
-    public string Author { get; init; }
-    public string? ImagePath { get; init; }
-    public bool IsDigital { get; init; }
-    public bool IsRead { get; init; }
-    public DateTime? PublishDate { get; init; }
+    public sealed record Manga : Book
+    {
+        public Manga(string title, string titleSlug, string author, string illustrator, int volume, 
+            string? imagePath, bool isDigital, bool isRead, DateTime? publishDate, string id = null) 
+            : base(title, titleSlug, imagePath, Collection.Manga, id)
+        {
+            Title = title;
+            TitleSlug = titleSlug;
+            Author = author;
+            Illustrator = illustrator;
+            Volume = volume;
+            ImagePath = imagePath;
+            IsDigital = isDigital;
+            IsRead = isRead;
+            PublishDate = publishDate;
+        }
+        public string Author { get; init; }
+        public int Volume { get; init; }
+        public string? Illustrator { get; init; }
+        public bool IsDigital { get; init; }
+        public bool IsRead { get; init; }
+        public DateTime? PublishDate { get; init; }
+        
+    }
+    
+    public sealed record LightNovel : Book
+    {
+        public LightNovel(string title, string titleSlug, string author, string illustrator, int volume, 
+            string? imagePath, bool isDigital, bool isRead, DateTime? publishDate, string id = null) 
+            : base(title, titleSlug, imagePath, Collection.LightNovel, id)
+        {
+            Title = title;
+            TitleSlug = titleSlug;
+            Author = author;
+            Illustrator = illustrator;
+            Volume = volume;
+            ImagePath = imagePath;
+            IsDigital = isDigital;
+            IsRead = isRead;
+            PublishDate = publishDate;
+        }
+
+        public string Author { get; init; }
+        public int Volume { get; init; }
+        public string? Illustrator { get; init; }
+        public bool IsDigital { get; init; }
+        public bool IsRead { get; init; }
+        public DateTime? PublishDate { get; init; }
+    }
 }

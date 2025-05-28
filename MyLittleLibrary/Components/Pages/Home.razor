@@ -267,8 +267,8 @@
         // TODO: Return actual title based on item type
         return item switch
         {
-            Manga manga => manga.Title ?? "Unknown Manga",
-            LightNovel novel => novel.Title ?? "Unknown Novel",
+            Book.Manga manga => manga.Title ?? "Unknown Manga",
+            Book.LightNovel novel => novel.Title ?? "Unknown Novel",
             _ => "Unknown Item"
         };
     }
@@ -277,8 +277,8 @@
     {
         return item switch
         {
-            Manga => "Manga",
-            LightNovel => "Light Novel",
+            Book.Manga => "Manga",
+            Book.LightNovel => "Light Novel",
             _ => "Film"
         };
     }
@@ -287,8 +287,8 @@
     {
         return item switch
         {
-            Manga => Color.Secondary,
-            LightNovel => Color.Tertiary,
+            Book.Manga => Color.Secondary,
+            Book.LightNovel => Color.Tertiary,
             _ => Color.Primary
         };
     }

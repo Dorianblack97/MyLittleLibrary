@@ -91,10 +91,10 @@
 
 @code {
     private string searchQuery = "";
-    private List<Manga> allMangas = new();
+    private List<Book.Manga> allMangas = new();
     private bool isLoading = true;
 
-    private IEnumerable<IGrouping<string, Manga>> GroupedMangas => 
+    private IEnumerable<IGrouping<string, Book.Manga>> GroupedMangas => 
         allMangas.GroupBy(m => m.Title);
 
     protected override async Task OnInitializedAsync()
@@ -133,7 +133,7 @@
         }
     }
 
-    private async Task OpenDeleteMangaDialog(Manga manga)
+    private async Task OpenDeleteMangaDialog(Book.Manga manga)
     {
         var parameters = new DialogParameters
         {

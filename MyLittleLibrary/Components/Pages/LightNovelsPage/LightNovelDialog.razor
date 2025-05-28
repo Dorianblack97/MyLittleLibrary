@@ -88,7 +88,7 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
     
-    [Parameter] public LightNovel? LightNovelToEdit { get; set; }
+    [Parameter] public Book.LightNovel? LightNovelToEdit { get; set; }
     [Parameter] public bool IsEdit { get; set; } = false;
 
     private LightNovelMutable lightNovel;
@@ -243,7 +243,7 @@
                 }
 
                 // Convert from mutable model to immutable record
-                var lightNovelRecord = new LightNovel(
+                var lightNovelRecord = new Book.LightNovel(
                     lightNovel.Title,
                     titleSlugToUse,
                     lightNovel.Author,

@@ -127,7 +127,6 @@
 </MudContainer>
 
 @code {
-    private List<Manga>? MangaList;
     private bool isLoading = true;
     private List<MangaSeries> mangaSeries = new();
 
@@ -135,11 +134,6 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadMangaCollection();
-    }
-
-    private async Task LoadMangaList()
-    {
-        MangaList = await MangaRepository.GetAllAsync();
     }
 
     private async Task LoadMangaCollection()
@@ -214,14 +208,4 @@
         public string? CoverImage { get; set; }
         public int CompletionPercentage { get; set; }
     }
-
-
-    private List<Manga> MangaList2 = new()
-    {
-        new Manga("Kaiju n.8", "Kaijun.8", "", "", 1, "images/kaijuneight01.jpg", false, true, DateTime.Now),
-        
-        
-        
-    };
-
 }

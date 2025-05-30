@@ -2,6 +2,7 @@ using MudBlazor.Services;
 using MyLittleLibrary.Components;
 using MyLittleLibrary.Infrastructure;
 using MyLittleLibrary.Infrastructure.Options;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Example of how to configure file paths in your Startup.cs or Program.cs
+app.UseStaticFiles(); // Default wwwroot folder
+
+// Add additional static files middleware for uploads folder
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")),
+    RequestPath = "/images"
+});
 
 app.UseAntiforgery();
 

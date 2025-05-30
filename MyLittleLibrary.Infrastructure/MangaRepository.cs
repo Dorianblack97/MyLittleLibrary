@@ -14,7 +14,7 @@ public class MangaRepository
     {
         var client = new MongoClient(options.Value.ConnectionString);
         var database = client.GetDatabase(options.Value.DatabaseName);
-        _collection = database.GetCollection<Book.Manga>(Contracts.MongoCollection);
+        _collection = database.GetCollection<Book.Manga>(MongoDbContracts.MongoCollection);
     }
 
     // Create

@@ -103,27 +103,6 @@
             }
         </MudGrid>
     }
-
-
-    @if (mangaSeries == null)
-    {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
-    }
-    else if (mangaSeries.Count == 0)
-    {
-        <MudAlert Severity="Severity.Info">No manga found in the database.</MudAlert>
-    }
-    else
-    {
-        <MudGrid Class="align-end" Justify="Justify.FlexStart">
-            @foreach (var manga in mangaSeries)
-            {
-                <MudItem>
-                    <Element Manga="@manga" Url="/manga/mangainfo"/>
-                </MudItem>
-            }
-        </MudGrid>
-    }
 </MudContainer>
 
 @code {

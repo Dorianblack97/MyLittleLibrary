@@ -14,7 +14,7 @@ public class BaseObjectRepository
     {
         var client = new MongoClient(options.Value.ConnectionString);
         var database = client.GetDatabase(options.Value.DatabaseName);
-        _collection = database.GetCollection<BsonDocument>(Contracts.MongoCollection);
+        _collection = database.GetCollection<BsonDocument>(MongoDbContracts.MongoCollection);
     }
 
     // Get 8 most recent objects with only BaseObject properties

@@ -1,6 +1,6 @@
 ﻿namespace MyLittleLibrary.Infrastructure;
 
-public static class Contracts
+public static class MongoDbContracts
 {
     public const string MongoCollection = "Collections";
 }

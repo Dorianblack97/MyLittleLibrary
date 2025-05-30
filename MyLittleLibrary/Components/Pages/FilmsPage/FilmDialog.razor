@@ -1,0 +1,179 @@
+﻿@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject FilmRepository FilmRepository
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer Style="max-height: 500px; overflow-y: auto;">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="film.Title"
+                                  Label="Title"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Title is required!"
+                                  For="@(() => film.Title)" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="film.Director"
+                                  Label="Director"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="Director is required!"
+                                  For="@(() => film.Director)" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSelect T="VideoFormat" @bind-Value="film.Format"
+                               Label="Format"
+                               Variant="Variant.Outlined"
+                               Required="true">
+                        @foreach (VideoFormat format in Enum.GetValues<VideoFormat>())
+                        {
+                            <MudSelectItem Value="@format">@format</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudDatePicker @bind-Date="film.ReleaseDate"
+                                   Label="Release Date"
+                                   Variant="Variant.Outlined"
+                                   DateFormat="yyyy-MM-dd" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="film.ImagePath"
+                                  Label="Image Path/URL"
+                                  Variant="Variant.Outlined"
+                                  For="@(() => film.ImagePath)" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudSwitch @bind-Value="film.IsWatched"
+                               Label="Already Watched"
+                               Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary" 
+                   OnClick="Submit" 
+                   Disabled="@(!IsValid() || isSubmitting)">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                <MudText Class="ms-2">Saving</MudText>
+            }
+            else
+            {
+                <MudText>Save</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    
+    [Parameter] public Video.Film? FilmToEdit { get; set; }
+
+    private FilmModel film;
+    private bool isSubmitting = false;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    protected override void OnInitialized()
+    {
+        film = new FilmModel();
+        
+        if (FilmToEdit is not null)
+        {
+            film.Title = FilmToEdit.Title;
+            film.Director = FilmToEdit.Director;
+            film.Format = FilmToEdit.Format;
+            film.ReleaseDate = FilmToEdit.ReleaseDate;
+            film.ImagePath = FilmToEdit.ImagePath;
+            film.IsWatched = FilmToEdit.IsWatched;
+        }
+    }
+
+    private async Task Submit()
+    {
+        if (!IsValid()) return;
+        
+        isSubmitting = true;
+        
+        try
+        {
+            var titleSlug = film.Title.ToLowerInvariant()
+                .Replace(" ", "-")
+                .Replace("'", "")
+                .Replace(":", "")
+                .Replace(".", "");
+
+            if (FilmToEdit is null)
+            {
+                // Create new film
+                var newFilm = new Video.Film(
+                    title: film.Title,
+                    titleSlug: titleSlug,
+                    director: film.Director,
+                    imagePath: string.IsNullOrWhiteSpace(film.ImagePath) ? null : film.ImagePath,
+                    format: film.Format,
+                    isWatched: film.IsWatched,
+                    releaseDate: film.ReleaseDate
+                );
+
+                await FilmRepository.CreateAsync(newFilm);
+            }
+            else
+            {
+                // Update existing film
+                var updatedFilm = new Video.Film(
+                    title: film.Title,
+                    titleSlug: titleSlug,
+                    director: film.Director,
+                    imagePath: string.IsNullOrWhiteSpace(film.ImagePath) ? null : film.ImagePath,
+                    format: film.Format,
+                    isWatched: film.IsWatched,
+                    releaseDate: film.ReleaseDate,
+                    id: FilmToEdit.Id
+                );
+
+                await FilmRepository.UpdateAsync(FilmToEdit.Id, updatedFilm);
+            }
+            
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error {(FilmToEdit is null ? "adding" : "updating")} film: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private bool IsValid()
+    {
+        return !string.IsNullOrWhiteSpace(film.Title) && 
+               !string.IsNullOrWhiteSpace(film.Director);
+    }
+
+    public class FilmModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Director { get; set; } = string.Empty;
+        public VideoFormat Format { get; set; } = VideoFormat.Digital;
+        public DateTime? ReleaseDate { get; set; }
+        public string? ImagePath { get; set; }
+        public bool IsWatched { get; set; } = false;
+    }
+}

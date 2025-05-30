@@ -14,7 +14,7 @@ public class LightNovelRepository
     {
         var client = new MongoClient(options.Value.ConnectionString);
         var database = client.GetDatabase(options.Value.DatabaseName);
-        _collection = database.GetCollection<Book.LightNovel>(Contracts.MongoCollection);
+        _collection = database.GetCollection<Book.LightNovel>(MongoDbContracts.MongoCollection);
     }
 
     // Create

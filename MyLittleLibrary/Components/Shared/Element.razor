@@ -1,13 +1,29 @@
-﻿<MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer" @onclick="@(() => NavigateToPage(Title))">
-//<MudButton OnClick="() => NavigateToPage(Title)" Style="padding: 0; border: none; background: none; width: 100%; display: block; text-align: center;">
-    <MudImage Fluid="true" Src="@ImagePath" Alt="Not found" Width="200" Elevation="25" Class="rounded-lg" FallbackSrc="images/fallback.jpg" />
-    <MudText Align="Align.Center" Style="max-width: 200px;">@Title</MudText>
-//</MudButton>
+﻿@using MyLittleLibrary.Components.Pages.MangasPage
+
+<MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer" MaxWidth="260px" @onclick="@(() => NavigateToPage(Manga.Title))">
+@* <MudButton OnClick="() => NavigateToPage(Manga.Title)" Style="padding: 0; border: none; background: none; width: 100%; display: block; text-align: center;"> *@
+    <MudImage Fluid="true" Src="@Manga.CoverImage" Alt="Not found" Width="200" Elevation="25" Class="rounded-lg" FallbackSrc="images/fallback.jpg" />
+    <MudItem  xs="8">
+        <MudText Typo="Typo.h5">@Manga.Title</MudText>
+        <MudText Typo="Typo.body1">Volumes: @Manga.VolumeCount</MudText>
+        <MudText Typo="Typo.body2">Author: @Manga.Author</MudText>
+        <MudText Typo="Typo.caption">
+            @if (Manga.CompletionPercentage == 100)
+            {
+                <MudChip T="string" Color="Color.Success" Size="Size.Small">Completed</MudChip>
+            }
+            else
+            {
+                <MudChip T="string" Color="Color.Info" Size="Size.Small">@Manga.CompletionPercentage%</MudChip>
+            }
+        </MudText>
+    </MudItem>
+@* </MudButton> *@
 </MudPaper>
 
 @code {
     [Parameter]
-    public required string Title { get; set; }
+    public required Mangas.MangaSeries Manga { get; set; }
     [Parameter]
     public string ImagePath { get; set; }
     [Parameter]

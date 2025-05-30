@@ -1,0 +1,232 @@
+﻿@page "/films/filminfo"
+@using MyLittleLibrary.Components.Shared
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject FilmRepository FilmRepository
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>@(film?.Title ?? "Film Details")</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+        </div>
+    }
+    else if (film == null)
+    {
+        <MudAlert Severity="Severity.Error">Film not found.</MudAlert>
+        <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" 
+                   OnClick="@(() => NavigationManager.NavigateTo("/film"))" 
+                   Class="mt-4">
+            Back to Films
+        </MudButton>
+    }
+    else
+    {
+        <MudPaper Elevation="3" Class="pa-6">
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    @if (!string.IsNullOrEmpty(film.ImagePath))
+                    {
+                        <img src="@film.ImagePath" alt="@film.Title" 
+                             style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;"/>
+                    }
+                    else
+                    {
+                        <div style="width: 100%; height: 400px; background-color: #f5f5f5; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Movie" Size="Size.Large" Style="font-size: 4rem; color: #ccc;"/>
+                        </div>
+                    }
+                </MudItem>
+
+                <MudItem xs="12" md="8">
+                    <div class="d-flex justify-space-between align-start mb-4">
+                        <MudText Typo="Typo.h3">@film.Title</MudText>
+                        <div>
+                            <MudButton StartIcon="@Icons.Material.Filled.Edit" 
+                                       Color="Color.Primary" 
+                                       Variant="Variant.Outlined"
+                                       OnClick="OpenEditDialog"
+                                       Class="mr-2">
+                                Edit
+                            </MudButton>
+                            <MudButton StartIcon="@Icons.Material.Filled.Delete" 
+                                       Color="Color.Error" 
+                                       Variant="Variant.Outlined"
+                                       OnClick="OpenDeleteDialog">
+                                Delete
+                            </MudButton>
+                        </div>
+                    </div>
+
+                    <MudText Typo="Typo.h5" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2"/>
+                        Director: @film.Director
+                    </MudText>
+
+                    <MudText Typo="Typo.h6" Class="mb-2">
+                        <MudIcon Icon="@GetFormatIcon(film.Format)" Class="mr-2"/>
+                        Format: @film.Format
+                    </MudText>
+
+                    @if (film.ReleaseDate.HasValue)
+                    {
+                        <MudText Typo="Typo.h6" Class="mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.DateRange" Class="mr-2"/>
+                            Release Date: @film.ReleaseDate.Value.ToString("MMMM dd, yyyy")
+                        </MudText>
+                    }
+
+                    <div class="mt-4">
+                        <MudChip T="string" Color="@(film.IsWatched ? Color.Success : Color.Warning)" 
+                                 Size="Size.Medium"
+                                 Icon="@(film.IsWatched ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Schedule)">
+                            @(film.IsWatched ? "Watched" : "Not Watched")
+                        </MudChip>
+                    </div>
+
+                    <div class="mt-4">
+                        <MudButton StartIcon="@(film.IsWatched ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                                   Color="Color.Primary"
+                                   Variant="Variant.Filled"
+                                   OnClick="ToggleWatchedStatus">
+                            Mark as @(film.IsWatched ? "Unwatched" : "Watched")
+                        </MudButton>
+                    </div>
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-6"/>
+
+            <div class="d-flex justify-space-between">
+                <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" 
+                           OnClick="@(() => NavigationManager.NavigateTo("/film"))">
+                    Back to Films
+                </MudButton>
+                
+                <MudText Typo="Typo.caption" Class="align-self-center">
+                    Added: @film.Timestamp.ToString("MMMM dd, yyyy")
+                </MudText>
+            </div>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Title { get; set; }
+
+    private Video.Film? film;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Title))
+        {
+            await LoadFilm();
+        }
+        else
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadFilm()
+    {
+        isLoading = true;
+        try
+        {
+            film = await FilmRepository.GetByTitleAsync(Title!);
+        }
+        catch (Exception)
+        {
+            // Handle exceptions
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ToggleWatchedStatus()
+    {
+        if (film == null) return;
+
+        try
+        {
+            var updatedFilm = film with { IsWatched = !film.IsWatched };
+            await FilmRepository.UpdateAsync(film.Id, updatedFilm);
+            film = updatedFilm;
+            
+            Snackbar.Add($"Film marked as {(film.IsWatched ? "watched" : "unwatched")}", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error updating film status", Severity.Error);
+        }
+    }
+
+    private async Task OpenEditDialog()
+    {
+        var parameters = new DialogParameters { ["FilmToEdit"] = film };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var dialog = await DialogService.ShowAsync<FilmDialog>("Edit Film", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadFilm();
+            Snackbar.Add("Film updated successfully!", Severity.Success);
+        }
+    }
+
+    private async Task OpenDeleteDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete '{film?.Title}'? This action cannot be undone.",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete Film", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                await FilmRepository.DeleteAsync(film!.Id);
+                Snackbar.Add("Film deleted successfully!", Severity.Success);
+                NavigationManager.NavigateTo("/film");
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Error deleting film", Severity.Error);
+            }
+        }
+    }
+
+    private string GetFormatIcon(VideoFormat format)
+    {
+        return format switch
+        {
+            VideoFormat.BluRay => Icons.Material.Filled.Album,
+            VideoFormat.Dvd => Icons.Material.Filled.Album,
+            VideoFormat.Digital => Icons.Material.Filled.CloudDownload,
+            VideoFormat.Vhs => Icons.Material.Filled.Videocam,
+            _ => Icons.Material.Filled.Movie
+        };
+    }
+}

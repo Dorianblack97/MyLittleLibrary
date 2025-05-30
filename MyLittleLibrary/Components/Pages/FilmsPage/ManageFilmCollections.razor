@@ -1,0 +1,362 @@
+﻿@page "/manage-films"
+@using MyLittleLibrary.Components.Shared
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject FilmRepository FilmRepository
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Elevation="3" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h4" Class="mb-4">Manage Film Collection</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="searchQuery" Label="Search by title or director" Immediate="true" 
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                              OnAdornmentClick="SearchFilms" OnKeyDown="@OnSearchKeyDown"/>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+    <MudSelect T="int" @bind-Value="selectedFormatValue" Label="Filter by format" 
+               Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+               OnValueChanged="@FormatFilterChanged">
+        <MudSelectItem Value="-1">All Formats</MudSelectItem>
+        @foreach (var format in Enum.GetValues<VideoFormat>())
+        {
+            <MudSelectItem Value="@((int)format)">@format</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+            <MudItem xs="12" sm="6" md="4" Class="d-flex justify-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="@(() => OpenAddFilmDialog())"
+                           Class="mr-2">
+                    Add Film
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" 
+                           StartIcon="@Icons.Material.Filled.DeleteSweep"
+                           OnClick="@(() => OpenDeleteAllFilmsDialog())"
+                           Disabled="@(!filteredFilms.Any())">
+                    Delete All
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        </div>
+    }
+    else if (!filteredFilms.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-4">No films found. Try a different search term or add new films.</MudAlert>
+    }
+    else
+    {
+        <MudTable Items="@filteredFilms" Hover="true" Breakpoint="Breakpoint.Sm" T="Video.Film" 
+                  Loading="@isLoading" LoadingProgressColor="Color.Primary">
+            <HeaderContent>
+                <MudTh>Title</MudTh>
+                <MudTh>Director</MudTh>
+                <MudTh>Format</MudTh>
+                <MudTh>Release Date</MudTh>
+                <MudTh>Watch Status</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Title">
+                    <div class="d-flex align-center">
+                        @if (!string.IsNullOrEmpty(context.ImagePath))
+                        {
+                            <MudAvatar Image="@context.ImagePath" Class="mr-2" Style="width: 40px; height: 60px; border-radius: 4px;"/>
+                        }
+                        else
+                        {
+                            <MudAvatar Color="Color.Secondary" Class="mr-2" Style="width: 40px; height: 60px; border-radius: 4px;">
+                                <MudIcon Icon="@Icons.Material.Filled.Movie" />
+                            </MudAvatar>
+                        }
+                        <MudText>@context.Title</MudText>
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="Director">@context.Director</MudTd>
+                <MudTd DataLabel="Format">
+                    <MudChip T="string" Color="@GetFormatColor(context.Format)" Size="Size.Small">
+                        @context.Format
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Release Date">@(context.ReleaseDate?.ToShortDateString() ?? "-")</MudTd>
+                <MudTd DataLabel="Watch Status">
+                    <MudChip T="string" Color="@(context.IsWatched ? Color.Success : Color.Warning)" Size="Size.Small"
+                             Icon="@(context.IsWatched ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Schedule)">
+                        @(context.IsWatched ? "Watched" : "Not Watched")
+                    </MudChip>
+                </MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Primary" 
+                                   OnClick="@(() => ViewFilmDetails(context.Title))" 
+                                   Title="View Details"/>
+                    <MudIconButton Icon="@(context.IsWatched ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)" 
+                                   Color="Color.Secondary" 
+                                   OnClick="@(() => ToggleWatchedStatus(context))" 
+                                   Title="@(context.IsWatched ? "Mark as Unwatched" : "Mark as Watched")"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" 
+                                   OnClick="@(() => OpenEditFilmDialog(context))" 
+                                   Title="Edit Film"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" 
+                                   OnClick="@(() => OpenDeleteFilmDialog(context))" 
+                                   Title="Delete Film"/>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    }
+</MudContainer>
+
+@code {
+    private string searchQuery = "";
+    private VideoFormat? formatFilter = null;
+    private List<Video.Film> allFilms = new();
+    private List<Video.Film> filteredFilms = new();
+    private bool isLoading = true;
+    private int selectedFormatValue = -1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFilms();
+    }
+
+    private async Task LoadFilms()
+    {
+        isLoading = true;
+        try
+        {
+            allFilms = await FilmRepository.GetAllAsync();
+            FilterFilms();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading films: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void FilterFilms()
+    {
+        filteredFilms = allFilms
+            .Where(f => 
+                (string.IsNullOrWhiteSpace(searchQuery) || 
+                 f.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                 f.Director.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
+                (selectedFormatValue == -1 || (int)f.Format == selectedFormatValue))
+            .ToList();
+    }
+
+    private async Task SearchFilms()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery) && formatFilter == null)
+        {
+            await LoadFilms();
+        }
+        else
+        {
+            FilterFilms();
+        }
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await SearchFilms();
+        }
+    }
+
+    private void ViewFilmDetails(string title)
+    {
+        NavigationManager.NavigateTo($"/films/filminfo?title={Uri.EscapeDataString(title)}");
+    }
+
+    private async Task ToggleWatchedStatus(Video.Film film)
+    {
+        try
+        {
+            var updatedFilm = film with { IsWatched = !film.IsWatched };
+            var success = await FilmRepository.UpdateAsync(film.Id, updatedFilm);
+            
+            if (success)
+            {
+                Snackbar.Add($"'{film.Title}' marked as {(updatedFilm.IsWatched ? "watched" : "unwatched")}", Severity.Success);
+                await LoadFilms();
+            }
+            else
+            {
+                Snackbar.Add("Failed to update film status", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OpenAddFilmDialog()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var dialog = await DialogService.ShowAsync<FilmDialog>("Add New Film", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadFilms();
+            Snackbar.Add("Film added successfully!", Severity.Success);
+        }
+    }
+
+    private async Task OpenEditFilmDialog(Video.Film film)
+    {
+        var parameters = new DialogParameters { ["Film"] = film };
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var dialog = await DialogService.ShowAsync<FilmDialog>("Edit Film", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadFilms();
+            Snackbar.Add("Film updated successfully!", Severity.Success);
+        }
+    }
+
+    private async Task OpenDeleteFilmDialog(Video.Film film)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete '{film.Title}'? This action cannot be undone." },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete Film", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await DeleteFilm(film.Id);
+        }
+    }
+
+    private async Task OpenDeleteAllFilmsDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", "Are you sure you want to delete ALL films? This action cannot be undone." },
+            { "ButtonText", "Delete All" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete All Films", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await DeleteAllFilms();
+        }
+    }
+
+    private async Task DeleteFilm(string id)
+    {
+        try
+        {
+            var success = await FilmRepository.DeleteAsync(id);
+            if (success)
+            {
+                Snackbar.Add("Film deleted successfully", Severity.Success);
+                await LoadFilms();
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete film", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteAllFilms()
+    {
+        try
+        {
+            int deleteCount = 0;
+            
+            foreach (var film in allFilms)
+            {
+                var success = await FilmRepository.DeleteAsync(film.Id);
+                if (success) deleteCount++;
+            }
+
+            if (deleteCount > 0)
+            {
+                Snackbar.Add($"Successfully deleted {deleteCount} films", Severity.Success);
+                await LoadFilms();
+            }
+            else
+            {
+                Snackbar.Add("No films were deleted", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private Color GetFormatColor(VideoFormat format)
+    {
+        return format switch
+        {
+            VideoFormat.BluRay => Color.Primary,
+            VideoFormat.BluRay4k => Color.Tertiary,
+            VideoFormat.Dvd => Color.Secondary,
+            VideoFormat.Digital => Color.Info,
+            VideoFormat.Vhs => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+private async Task FormatFilterChanged(int value)
+{
+    if (value == -1)
+    {
+        formatFilter = null;
+    }
+    else
+    {
+        formatFilter = (VideoFormat)value;
+    }
+    
+    await SearchFilms();
+}
+}

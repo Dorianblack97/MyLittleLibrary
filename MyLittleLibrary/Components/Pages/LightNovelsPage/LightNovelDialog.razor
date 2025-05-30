@@ -1,34 +1,35 @@
+﻿
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
 @using System.IO
 @using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.Hosting
-@inject MangaRepository MangaRepository
+@inject LightNovelRepository LightNovelRepository
 @inject IWebHostEnvironment Environment
 
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
             <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.Add)" Class="mr-2"/>
-            @(IsEdit ? "Edit Manga" : "Add New Manga")
+            @(IsEdit ? "Edit Light Novel" : "Add New Light Novel")
         </MudText>
     </TitleContent>
     <DialogContent>
         <MudForm @ref="form" @bind-IsValid="@success">
             <MudGrid>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="manga.Title" Label="Title" Required="true"
+                    <MudTextField @bind-Value="lightNovel.Title" Label="Title" Required="true"
                                   RequiredError="Title is required!"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="manga.Author" Label="Author" Required="true"
+                    <MudTextField @bind-Value="lightNovel.Author" Label="Author" Required="true"
                                   RequiredError="Author is required!"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="manga.Illustrator" Label="Illustrator"/>
+                    <MudTextField @bind-Value="lightNovel.Illustrator" Label="Illustrator"/>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudNumericField @bind-Value="manga.Volume" Label="Volume" Required="true" Min="1"/>
+                    <MudNumericField @bind-Value="lightNovel.Volume" Label="Volume" Required="true" Min="1"/>
                 </MudItem>
                 <MudItem xs="6">
                     <MudDatePicker @bind-Date="publishDate" Label="Publish Date"/>
@@ -45,12 +46,12 @@
                             </MudButton>
                         </ActivatorContent>
                     </MudFileUpload>
-                    @if (!string.IsNullOrEmpty(manga.ImagePath))
+                    @if (!string.IsNullOrEmpty(lightNovel.ImagePath))
                     {
                         <div class="d-flex align-center mt-2">
                             <MudText Class="mr-2">Image selected:</MudText>
                             <MudChip T="string" Color="Color.Success"
-                                     Icon="@Icons.Material.Filled.Check">@Path.GetFileName(manga.ImagePath)</MudChip>
+                                     Icon="@Icons.Material.Filled.Check">@Path.GetFileName(lightNovel.ImagePath)</MudChip>
                             <MudIconButton Icon="@Icons.Material.Filled.Clear" Size="Size.Small"
                                            OnClick="ClearSelectedImage"/>
                         </div>
@@ -87,10 +88,10 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
     
-    [Parameter] public Book.Manga? MangaToEdit { get; set; }
+    [Parameter] public Book.LightNovel? LightNovelToEdit { get; set; }
     [Parameter] public bool IsEdit { get; set; } = false;
 
-    private MangaMutable manga;
+    private LightNovelMutable lightNovel;
     private DateTime? publishDate;
     private bool success = false;
     private bool isSubmitting = false;
@@ -106,32 +107,32 @@
 
     protected override void OnInitialized()
     {
-        // Initialize with default or existing manga data
-        manga = new MangaMutable();
+        // Initialize with default or existing light novel data
+        lightNovel = new LightNovelMutable();
         
-        if (MangaToEdit is not null)
+        if (LightNovelToEdit is not null)
         {
             // Store original values
-            originalId = MangaToEdit.Id;
-            originalTitleSlug = MangaToEdit.TitleSlug;
+            originalId = LightNovelToEdit.Id;
+            originalTitleSlug = LightNovelToEdit.TitleSlug;
             
-            // Initialize form with existing manga data
-            manga.SetTitle(MangaToEdit.Title);
-            manga.Author = MangaToEdit.Author;
-            manga.Illustrator = MangaToEdit.Illustrator;
-            manga.Volume = MangaToEdit.Volume;
-            manga.ImagePath = MangaToEdit.ImagePath;
-            manga.SetTitleSlug(MangaToEdit.TitleSlug);
-            publishDate = MangaToEdit.PublishDate;
+            // Initialize form with existing light novel data
+            lightNovel.SetTitle(LightNovelToEdit.Title);
+            lightNovel.Author = LightNovelToEdit.Author;
+            lightNovel.Illustrator = LightNovelToEdit.Illustrator;
+            lightNovel.Volume = LightNovelToEdit.Volume;
+            lightNovel.ImagePath = LightNovelToEdit.ImagePath;
+            lightNovel.SetTitleSlug(LightNovelToEdit.TitleSlug);
+            publishDate = LightNovelToEdit.PublishDate;
             
-            // Initialize switch values from existing manga
-            isDigital = MangaToEdit.IsDigital;
-            isRead = MangaToEdit.IsRead;
+            // Initialize switch values from existing light novel
+            isDigital = LightNovelToEdit.IsDigital;
+            isRead = LightNovelToEdit.IsRead;
         }
     }
 
     // A mutable class to work with form binding
-    private class MangaMutable
+    private class LightNovelMutable
     {
         private string _title = string.Empty;
         private string _titleSlug = string.Empty;
@@ -199,14 +200,14 @@
 
     private void UpdateImagePath()
     {
-        if (uploadedFile is null || string.IsNullOrEmpty(manga.TitleSlug)) return;
-        var fileName = $"{manga.TitleSlug}_{manga.Volume}{originalFileExtension}";
-        manga.ImagePath = Path.Combine("images", manga.TitleSlug, fileName);
+        if (uploadedFile is null || string.IsNullOrEmpty(lightNovel.TitleSlug)) return;
+        var fileName = $"{lightNovel.TitleSlug}_{lightNovel.Volume}{originalFileExtension}";
+        lightNovel.ImagePath = Path.Combine("images", lightNovel.TitleSlug, fileName);
     }
 
     private void ClearSelectedImage()
     {
-        manga.ImagePath = null;
+        lightNovel.ImagePath = null;
         uploadedFile = null;
         originalFileExtension = string.Empty;
     }
@@ -221,17 +222,17 @@
 
             try
             {
-                // Use the original title slug for existing manga to maintain consistency
-                string titleSlugToUse = IsEdit ? originalTitleSlug : manga.TitleSlug;
+                // Use the original title slug for existing light novel to maintain consistency
+                string titleSlugToUse = IsEdit ? originalTitleSlug : lightNovel.TitleSlug;
                 
                 // Update image path one more time to ensure it uses latest title/volume
                 if (uploadedFile != null)
                 {
                     // For edit mode, keep file naming consistent with original slug
-                    var fileName = $"{titleSlugToUse}_{manga.Volume}{originalFileExtension}";
-                    manga.ImagePath = Path.Combine("images", titleSlugToUse, fileName);
+                    var fileName = $"{titleSlugToUse}_{lightNovel.Volume}{originalFileExtension}";
+                    lightNovel.ImagePath = Path.Combine("images", titleSlugToUse, fileName);
 
-                    var filePath = Path.Combine(Environment.WebRootPath, manga.ImagePath!);
+                    var filePath = Path.Combine(Environment.WebRootPath, lightNovel.ImagePath!);
 
                     // Ensure directory exists
                     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
@@ -242,13 +243,13 @@
                 }
 
                 // Convert from mutable model to immutable record
-                var mangaRecord = new Book.Manga(
-                    manga.Title,
+                var lightNovelRecord = new Book.LightNovel(
+                    lightNovel.Title,
                     titleSlugToUse,
-                    manga.Author,
-                    manga.Illustrator,
-                    manga.Volume,
-                    manga.ImagePath,
+                    lightNovel.Author,
+                    lightNovel.Illustrator,
+                    lightNovel.Volume,
+                    lightNovel.ImagePath,
                     isDigital,   // Use the directly bound switch value
                     isRead,      // Use the directly bound switch value
                     publishDate,
@@ -257,15 +258,15 @@
 
                 if (IsEdit)
                 {
-                    await MangaRepository.UpdateAsync(originalId, mangaRecord);
+                    await LightNovelRepository.UpdateAsync(originalId, lightNovelRecord);
                 }
                 else
                 {
-                    await MangaRepository.CreateAsync(mangaRecord);
+                    await LightNovelRepository.CreateAsync(lightNovelRecord);
                 }
 
-                // Return the manga to the caller
-                MudDialog.Close(DialogResult.Ok(mangaRecord));
+                // Return the light novel to the caller
+                MudDialog.Close(DialogResult.Ok(lightNovelRecord));
             }
             catch (Exception ex)
             {

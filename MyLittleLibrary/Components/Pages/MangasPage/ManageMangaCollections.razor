@@ -1,0 +1,260 @@
+﻿@page "/manage-mangas"
+@using MyLittleLibrary.Components.Shared
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject MangaRepository MangaRepository
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Elevation="3" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h4" Class="mb-4">Manage Manga Collections</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="searchQuery" Label="Search by title" Immediate="true" 
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                              OnAdornmentClick="SearchMangas" OnKeyDown="@OnSearchKeyDown"/>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="8" Class="d-flex justify-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Error" 
+                           StartIcon="@Icons.Material.Filled.DeleteSweep"
+                           OnClick="@(() => OpenDeleteCollectionDialog())"
+                           Disabled="@(!GroupedMangas.Any())">
+                    Delete Collection
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        </div>
+    }
+    else if (!GroupedMangas.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-4">No manga collections found. Try a different search term or add new manga.</MudAlert>
+    }
+    else
+    {
+        @foreach (var group in GroupedMangas)
+        {
+            <MudExpansionPanel Class="mb-4">
+                <TitleContent>
+                    <div class="d-flex align-center">
+                        <MudText Typo="Typo.h6" Class="flex-grow-1">@group.Key</MudText>
+                        <MudButtonGroup>
+                            <MudButton Variant="Variant.Text" Color="Color.Error" 
+                                    StartIcon="@Icons.Material.Filled.Delete"
+                                    OnClick="@(() => OpenDeleteCollectionDialog(group.Key))"
+                                    Class="mr-2">
+                                Delete Series
+                            </MudButton>
+                        </MudButtonGroup>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudTable Items="@group.OrderBy(m => m.Volume)" Hover="true" Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh>Volume</MudTh>
+        <MudTh>Author</MudTh>
+        <MudTh>Illustrator</MudTh>
+        <MudTh>Format</MudTh>
+        <MudTh>Read Status</MudTh>
+        <MudTh>Publish Date</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Volume">@context.Volume</MudTd>
+        <MudTd DataLabel="Author">@context.Author</MudTd>
+        <MudTd DataLabel="Illustrator">@context.Illustrator</MudTd>
+        <MudTd DataLabel="Format">@(context.IsDigital ? "Digital" : "Physical")</MudTd>
+        <MudTd DataLabel="Read Status">
+            <MudChip T="string" Color="@(context.IsRead ? Color.Success : Color.Default)" Size="Size.Small">
+                @(context.IsRead ? "Read" : "Unread")
+            </MudChip>
+        </MudTd>
+        <MudTd DataLabel="Publish Date">@(context.PublishDate?.ToShortDateString() ?? "-")</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" 
+                           OnClick="@(() => OpenDeleteMangaDialog(context))" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    }
+</MudContainer>
+
+@code {
+    private string searchQuery = "";
+    private List<Book.Manga> allMangas = new();
+    private bool isLoading = true;
+
+    private IEnumerable<IGrouping<string, Book.Manga>> GroupedMangas => 
+        allMangas.GroupBy(m => m.Title);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMangas();
+    }
+
+    private async Task LoadMangas()
+    {
+        isLoading = true;
+        allMangas = await MangaRepository.GetAllAsync();
+        isLoading = false;
+    }
+
+    private async Task SearchMangas()
+    {
+        isLoading = true;
+        
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            allMangas = await MangaRepository.GetAllAsync();
+        }
+        else
+        {
+            allMangas = await MangaRepository.SearchByTitleAsync(searchQuery);
+        }
+        
+        isLoading = false;
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await SearchMangas();
+        }
+    }
+
+    private async Task OpenDeleteMangaDialog(Book.Manga manga)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete '{manga.Title}' Volume {manga.Volume}? This action cannot be undone." },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Deletion", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await DeleteManga(manga.Id);
+        }
+    }
+
+    private async Task OpenDeleteCollectionDialog(string title = null)
+    {
+        string message = title == null 
+            ? "Are you sure you want to delete ALL manga collections? This action cannot be undone."
+            : $"Are you sure you want to delete the entire '{title}' series? This action cannot be undone.";
+
+        var parameters = new DialogParameters
+        {
+            { "ContentText", message },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Deletion", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            if (title == null)
+            {
+                await DeleteAllMangas();
+            }
+            else
+            {
+                await DeleteMangaCollection(title);
+            }
+        }
+    }
+
+    private async Task DeleteManga(string id)
+    {
+        try
+        {
+            var success = await MangaRepository.DeleteAsync(id);
+            if (success)
+            {
+                Snackbar.Add("Manga deleted successfully", Severity.Success);
+                await LoadMangas();
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete manga", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteMangaCollection(string title)
+    {
+        try
+        {
+            var mangasToDelete = allMangas.Where(m => m.Title == title).ToList();
+            int deleteCount = 0;
+            
+            foreach (var manga in mangasToDelete)
+            {
+                var success = await MangaRepository.DeleteAsync(manga.Id);
+                if (success) deleteCount++;
+            }
+
+            if (deleteCount > 0)
+            {
+                Snackbar.Add($"Successfully deleted {deleteCount} manga volumes", Severity.Success);
+                await LoadMangas();
+            }
+            else
+            {
+                Snackbar.Add("No manga volumes were deleted", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteAllMangas()
+    {
+        try
+        {
+            int deleteCount = 0;
+            
+            foreach (var manga in allMangas)
+            {
+                var success = await MangaRepository.DeleteAsync(manga.Id);
+                if (success) deleteCount++;
+            }
+
+            if (deleteCount > 0)
+            {
+                Snackbar.Add($"Successfully deleted {deleteCount} manga volumes", Severity.Success);
+                await LoadMangas();
+            }
+            else
+            {
+                Snackbar.Add("No manga volumes were deleted", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}

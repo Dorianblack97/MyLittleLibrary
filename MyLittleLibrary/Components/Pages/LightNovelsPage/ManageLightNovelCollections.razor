@@ -1,0 +1,261 @@
+﻿
+@page "/manage-lightnovels"
+@using MyLittleLibrary.Components.Shared
+@using MyLittleLibrary.Domain
+@using MyLittleLibrary.Infrastructure
+@inject LightNovelRepository LightNovelRepository
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Elevation="3" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h4" Class="mb-4">Manage Light Novel Collections</MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <MudTextField @bind-Value="searchQuery" Label="Search by title" Immediate="true" 
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                              OnAdornmentClick="SearchLightNovels" OnKeyDown="@OnSearchKeyDown"/>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="8" Class="d-flex justify-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Error" 
+                           StartIcon="@Icons.Material.Filled.DeleteSweep"
+                           OnClick="@(() => OpenDeleteCollectionDialog())"
+                           Disabled="@(!GroupedLightNovels.Any())">
+                    Delete Collection
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+        </div>
+    }
+    else if (!GroupedLightNovels.Any())
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-4">No light novel collections found. Try a different search term or add new light novels.</MudAlert>
+    }
+    else
+    {
+        @foreach (var group in GroupedLightNovels)
+        {
+            <MudExpansionPanel Class="mb-4">
+                <TitleContent>
+                    <div class="d-flex align-center">
+                        <MudText Typo="Typo.h6" Class="flex-grow-1">@group.Key</MudText>
+                        <MudButtonGroup>
+                            <MudButton Variant="Variant.Text" Color="Color.Error" 
+                                    StartIcon="@Icons.Material.Filled.Delete"
+                                    OnClick="@(() => OpenDeleteCollectionDialog(group.Key))"
+                                    Class="mr-2">
+                                Delete Series
+                            </MudButton>
+                        </MudButtonGroup>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudTable Items="@group.OrderBy(ln => ln.Volume)" Hover="true" Breakpoint="Breakpoint.Sm">
+                        <HeaderContent>
+                            <MudTh>Volume</MudTh>
+                            <MudTh>Author</MudTh>
+                            <MudTh>Illustrator</MudTh>
+                            <MudTh>Format</MudTh>
+                            <MudTh>Read Status</MudTh>
+                            <MudTh>Publish Date</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Volume">@context.Volume</MudTd>
+                            <MudTd DataLabel="Author">@context.Author</MudTd>
+                            <MudTd DataLabel="Illustrator">@context.Illustrator</MudTd>
+                            <MudTd DataLabel="Format">@(context.IsDigital ? "Digital" : "Physical")</MudTd>
+                            <MudTd DataLabel="Read Status">
+                                <MudChip T="string" Color="@(context.IsRead ? Color.Success : Color.Default)" Size="Size.Small">
+                                    @(context.IsRead ? "Read" : "Unread")
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Publish Date">@(context.PublishDate?.ToShortDateString() ?? "-")</MudTd>
+                            <MudTd>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" 
+                                               OnClick="@(() => OpenDeleteLightNovelDialog(context))" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    }
+</MudContainer>
+
+@code {
+    private string searchQuery = "";
+    private List<Book.LightNovel> allLightNovels = new();
+    private bool isLoading = true;
+
+    private IEnumerable<IGrouping<string, Book.LightNovel>> GroupedLightNovels => 
+        allLightNovels.GroupBy(ln => ln.Title);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLightNovels();
+    }
+
+    private async Task LoadLightNovels()
+    {
+        isLoading = true;
+        allLightNovels = await LightNovelRepository.GetAllAsync();
+        isLoading = false;
+    }
+
+    private async Task SearchLightNovels()
+    {
+        isLoading = true;
+        
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            allLightNovels = await LightNovelRepository.GetAllAsync();
+        }
+        else
+        {
+            allLightNovels = await LightNovelRepository.SearchByTitleAsync(searchQuery);
+        }
+        
+        isLoading = false;
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await SearchLightNovels();
+        }
+    }
+
+    private async Task OpenDeleteLightNovelDialog(Book.LightNovel lightNovel)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"Are you sure you want to delete '{lightNovel.Title}' Volume {lightNovel.Volume}? This action cannot be undone." },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Deletion", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await DeleteLightNovel(lightNovel.Id);
+        }
+    }
+
+    private async Task OpenDeleteCollectionDialog(string title = null)
+    {
+        string message = title == null 
+            ? "Are you sure you want to delete ALL light novel collections? This action cannot be undone."
+            : $"Are you sure you want to delete the entire '{title}' series? This action cannot be undone.";
+
+        var parameters = new DialogParameters
+        {
+            { "ContentText", message },
+            { "ButtonText", "Delete" },
+            { "Color", Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Deletion", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            if (title == null)
+            {
+                await DeleteAllLightNovels();
+            }
+            else
+            {
+                await DeleteLightNovelCollection(title);
+            }
+        }
+    }
+
+    private async Task DeleteLightNovel(string id)
+    {
+        try
+        {
+            var success = await LightNovelRepository.DeleteAsync(id);
+            if (success)
+            {
+                Snackbar.Add("Light Novel deleted successfully", Severity.Success);
+                await LoadLightNovels();
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete light novel", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteLightNovelCollection(string title)
+    {
+        try
+        {
+            var lightNovelsToDelete = allLightNovels.Where(ln => ln.Title == title).ToList();
+            int deleteCount = 0;
+            
+            foreach (var lightNovel in lightNovelsToDelete)
+            {
+                var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
+                if (success) deleteCount++;
+            }
+
+            if (deleteCount > 0)
+            {
+                Snackbar.Add($"Successfully deleted {deleteCount} light novel volumes", Severity.Success);
+                await LoadLightNovels();
+            }
+            else
+            {
+                Snackbar.Add("No light novel volumes were deleted", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DeleteAllLightNovels()
+    {
+        try
+        {
+            int deleteCount = 0;
+            
+            foreach (var lightNovel in allLightNovels)
+            {
+                var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
+                if (success) deleteCount++;
+            }
+
+            if (deleteCount > 0)
+            {
+                Snackbar.Add($"Successfully deleted {deleteCount} light novel volumes", Severity.Success);
+                await LoadLightNovels();
+            }
+            else
+            {
+                Snackbar.Add("No light novel volumes were deleted", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+}

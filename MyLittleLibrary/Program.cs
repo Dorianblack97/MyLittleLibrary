@@ -1,6 +1,7 @@
 using MudBlazor.Services;
 using MyLittleLibrary.Components;
 using MyLittleLibrary.Infrastructure;
+using MyLittleLibrary.Infrastructure.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,13 +12,24 @@ builder.Services.AddMudServices();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddSingleton<MangaRepository>(sp => {
-    var config = sp.GetRequiredService<IConfiguration>();
-    var connectionString = config.GetSection("MongoDB:ConnectionString").Value;
-    var databaseName = config.GetSection("MongoDB:DatabaseName").Value;
-    return new MangaRepository(connectionString, databaseName);
+var username = Environment.GetEnvironmentVariable("MONGODB_USERNAME");
+var password = Environment.GetEnvironmentVariable("MONGODB_PASSWORD");
+var connectionString = $"mongodb://{username}:{password}@mongodb:27017";
+var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE");
+
+builder.Services.Configure<MongoOptions>(options =>
+{
+    options.ConnectionString = connectionString;
+    options.DatabaseName = databaseName;
 });
 
+builder.Services.AddOptions<MongoOptions>();
+
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<MangaRepository>()
+    .AddClasses(classes => classes.InExactNamespaceOf<MangaRepository>())
+    .AsSelf()
+    .WithSingletonLifetime());
 
 var app = builder.Build();
 

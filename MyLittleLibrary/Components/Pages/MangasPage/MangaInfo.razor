@@ -2,9 +2,17 @@
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
 @inject MangaRepository MangaRepository
+@inject IDialogService DialogService
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-    <MudText Typo="Typo.h3" Class="mb-4 text-center">@Title</MudText>
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h3">@Title</MudText>
+        <MudIconButton Color="Color.Primary" 
+                       Icon="@Icons.Material.Filled.Add"
+                       Size="Size.Large"
+                       OnClick="OpenAddVolumeDialog">
+        </MudIconButton>
+    </div>
     
     @if (isLoading)
     {
@@ -23,10 +31,13 @@
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
                     <MudCard Elevation="3" Class="h-100">
-                        <MudCardMedia Image="@manga.ImagePath" />
+                        <MudCardMedia Height="250" Style="object-fit: contain; cursor: zoom-in;" 
+                                      Image="@manga.ImagePath" 
+                                      @onclick="() => OpenImagePreview(manga.ImagePath)" />
                         <MudCardContent>
                             <MudText Typo="Typo.h6">Volume @manga.Volume</MudText>
                             <MudText Typo="Typo.body2">Author: @manga.Author</MudText>
+                            <MudText Typo="Typo.body2">Illustrator: @manga.Illustrator</MudText>
                             @if (manga.PublishDate.HasValue)
                             {
                                 <MudText Typo="Typo.body2">Published: @manga.PublishDate.Value.ToString("d")</MudText>
@@ -34,20 +45,39 @@
                         </MudCardContent>
                         <MudCardActions>
                             <MudChip T="string" OnClick="() => OnChipClicked(manga)" Color="@(manga.IsRead ? Color.Success : Color.Default)" 
-                                    Size="Size.Small" 
-                                    Icon="@(manga.IsRead ? Icons.Material.Filled.Check : Icons.Material.Filled.HourglassEmpty)">
+                                     Size="Size.Small" 
+                                     Icon="@(manga.IsRead ? Icons.Material.Filled.Check : Icons.Material.Filled.HourglassEmpty)">
                                 @(manga.IsRead ? "Read" : "Unread")
                             </MudChip>
-                            <MudChip T="string" Color="@(manga.IsDigital ? Color.Info : Color.Default)" 
-                                    Size="Size.Small" 
-                                    Icon="@(manga.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
+                            <MudChip T="string" Color="Color.Default" 
+                                     Size="Size.Small" 
+                                     Icon="@(manga.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
                                 @(manga.IsDigital ? "Digital" : "Physical")
                             </MudChip>
+                            <MudSpacer />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(manga)"
+                                           aria-label="Edit" />
                         </MudCardActions>
                     </MudCard>
                 </MudItem>
             }
         </MudGrid>
+    }
+    
+    @if (showImagePreview)
+    {
+        <MudOverlay Visible="showImagePreview" DarkBackground="true" Absolute="false" ZIndex="9999" OnClick="CloseImagePreview">
+            <div class="d-flex justify-center align-center" style="width: 100%; height: 100%;">
+                <MudImage Src="@previewImagePath" Alt="Full size manga cover" 
+                          Elevation="25" 
+                          Class="rounded-lg ma-4" 
+                          ObjectFit="ObjectFit.Contain"
+                          Stile="Height: 90%; Width: 90%;" />
+            </div>
+        </MudOverlay>
     }
 </MudContainer>
 
@@ -56,8 +86,10 @@
     [SupplyParameterFromQuery]
     public required string Title { get; set; }
     
-    private List<Manga> mangaVolumes = new();
+    private List<Book.Manga> mangaVolumes = new();
     private bool isLoading = true;
+    private bool showImagePreview = false;
+    private string previewImagePath = string.Empty;
     
     protected override async Task OnInitializedAsync()
     {
@@ -93,10 +125,87 @@
         }
     }
 
-    private async Task OnChipClicked(Manga manga)
+    private async Task OnChipClicked(Book.Manga manga)
     {
         var updatedManga = manga with { IsRead = !manga.IsRead };
         await MangaRepository.UpdateAsync(updatedManga.Id, updatedManga);
         await LoadMangaVolumes();
+    }
+    
+    private async Task OpenEditDialog(Book.Manga manga)
+    {
+        var parameters = new DialogParameters
+        {
+            ["MangaToEdit"] = manga,
+            ["IsEdit"] = true
+        };
+        
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small,
+            BackdropClick = false // Prevents accidental closing on mobile
+        };
+        
+        var dialog = await DialogService.ShowAsync<MangaDialog>("Edit Manga", parameters, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await LoadMangaVolumes();
+        }
+    }
+    
+    private async Task OpenAddVolumeDialog()
+    {
+        // Create a new manga object with the title pre-filled
+        var mangaBase = mangaVolumes.Last();
+        var newManga = new Book.Manga(
+            title: mangaBase.Title,
+            titleSlug: mangaBase.TitleSlug,
+            author: mangaBase.Author,
+            illustrator: mangaBase.Illustrator,
+            volume: mangaBase.Volume + 1,
+            imagePath: null,
+            isDigital: mangaBase.IsDigital,
+            isRead: false,
+            publishDate: null);
+
+        var parameters = new DialogParameters
+        {
+            ["MangaToEdit"] = newManga,
+            ["IsEdit"] = false
+        };
+        
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small,
+            BackdropClick = false
+        };
+        
+        var dialog = await DialogService.ShowAsync<MangaDialog>("Add New Volume", parameters, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            await LoadMangaVolumes();
+        }
+    }
+    
+    private void OpenImagePreview(string imagePath)
+    {
+        if (!string.IsNullOrEmpty(imagePath))
+        {
+            previewImagePath = imagePath;
+            showImagePreview = true;
+        }
+    }
+    
+    private void CloseImagePreview()
+    {
+        showImagePreview = false;
     }
 }

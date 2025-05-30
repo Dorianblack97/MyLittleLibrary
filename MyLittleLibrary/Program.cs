@@ -14,7 +14,8 @@ builder.Services.AddRazorComponents()
 
 var username = Environment.GetEnvironmentVariable("MONGODB_USERNAME");
 var password = Environment.GetEnvironmentVariable("MONGODB_PASSWORD");
-var connectionString = $"mongodb://{username}:{password}@mongodb:27017";
+var endpoint = Environment.GetEnvironmentVariable("MONGODB_ENDPOINT") ?? "mongodb:27017";
+var connectionString = $"mongodb://{username}:{password}@{endpoint}";
 var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE");
 
 builder.Services.Configure<MongoOptions>(options =>

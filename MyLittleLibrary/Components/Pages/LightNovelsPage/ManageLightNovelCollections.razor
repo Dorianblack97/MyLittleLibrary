@@ -6,6 +6,7 @@
 @inject LightNovelRepository LightNovelRepository
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IWebHostEnvironment Environment
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudPaper Elevation="3" Class="pa-4 mb-4">
@@ -148,7 +149,7 @@
 
         if (!result.Canceled)
         {
-            await DeleteLightNovel(lightNovel.Id);
+            await DeleteLightNovel(lightNovel.Id, lightNovel.ImagePath);
         }
     }
 
@@ -181,11 +182,12 @@
         }
     }
 
-    private async Task DeleteLightNovel(string id)
+    private async Task DeleteLightNovel(string id, string imagePath)
     {
         try
         {
             var success = await LightNovelRepository.DeleteAsync(id);
+            var successImage = DeleteImageFile(imagePath);
             if (success)
             {
                 Snackbar.Add("Light Novel deleted successfully", Severity.Success);
@@ -212,6 +214,7 @@
             foreach (var lightNovel in lightNovelsToDelete)
             {
                 var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
+                var successImage = DeleteImageFile(lightNovel.ImagePath);
                 if (success) deleteCount++;
             }
 
@@ -240,6 +243,7 @@
             foreach (var lightNovel in allLightNovels)
             {
                 var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
+                var successImage = DeleteImageFile(lightNovel.ImagePath);
                 if (success) deleteCount++;
             }
 
@@ -257,5 +261,38 @@
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
+    }
+    
+    
+    private bool DeleteImageFile(string imagePath)
+    {
+        if (string.IsNullOrEmpty(imagePath))
+            return false;
+            
+        try
+        {
+            var fullPath = Path.Combine(Environment.WebRootPath, imagePath);
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+                
+                // Check if directory is empty after deleting the file
+                var directory = Path.GetDirectoryName(fullPath);
+                if (directory != null && Directory.Exists(directory) && !Directory.EnumerateFiles(directory).Any())
+                {
+                    // Remove empty directory
+                    Directory.Delete(directory);
+                }
+                
+                return true;
+            }
+        }
+        catch (Exception)
+        {
+            // Handle any file system exceptions
+            return false;
+        }
+        
+        return false;
     }
 }

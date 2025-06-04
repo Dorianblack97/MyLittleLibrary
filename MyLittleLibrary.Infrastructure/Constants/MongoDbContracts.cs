@@ -1,4 +1,4 @@
-﻿namespace MyLittleLibrary.Infrastructure;
+﻿namespace MyLittleLibrary.Infrastructure.Constants;
 
 public static class MongoDbContracts
 {

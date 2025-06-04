@@ -2,6 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MyLittleLibrary.Domain;
+using MyLittleLibrary.Infrastructure.Constants;
 using MyLittleLibrary.Infrastructure.Options;
 
 namespace MyLittleLibrary.Infrastructure;

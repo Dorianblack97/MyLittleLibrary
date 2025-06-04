@@ -1,59 +1,116 @@
-﻿
-@using MyLittleLibrary.Domain
+﻿@using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
 @using System.IO
-@using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.Hosting
 @inject LightNovelRepository LightNovelRepository
 @inject IWebHostEnvironment Environment
+
+@inherits Shared.BookUploadDialog
 
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
             <MudIcon Icon="@(IsEdit ? Icons.Material.Filled.Edit : Icons.Material.Filled.Add)" Class="mr-2"/>
-            @(IsEdit ? "Edit Light Novel" : "Add New Light Novel")
+            @(IsEdit ? $"Edit {BookType}" : $"Add New {BookType}")
         </MudText>
     </TitleContent>
     <DialogContent>
         <MudForm @ref="form" @bind-IsValid="@success">
             <MudGrid>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="lightNovel.Title" Label="Title" Required="true"
+                    <MudTextField @bind-Value="Book.Title" Label="Title" Required="true"
                                   RequiredError="Title is required!"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="lightNovel.Author" Label="Author" Required="true"
+                    <MudTextField @bind-Value="Book.Author" Label="Author" Required="true"
                                   RequiredError="Author is required!"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="lightNovel.Illustrator" Label="Illustrator"/>
+                    <MudTextField @bind-Value="Book.Illustrator" Label="Illustrator"/>
                 </MudItem>
-                <MudItem xs="6">
-                    <MudNumericField @bind-Value="lightNovel.Volume" Label="Volume" Required="true" Min="1"/>
-                </MudItem>
+                
+                @if (!IsEdit)
+                {
+                    <MudItem xs="12">
+                        <MudSwitch @bind-Value="isMultipleVolumes" Label="Create Multiple Volumes" Color="Color.Primary" />
+                    </MudItem>
+                }
+                
+                @if (IsEdit || !isMultipleVolumes)
+                {
+                    <MudItem xs="6">
+                        <MudNumericField @bind-Value="Book.Volume" Label="Volume" Required="true" Min="1"/>
+                    </MudItem>
+                }
+                else
+                {
+                    <MudItem xs="6">
+                        <MudNumericField @bind-Value="startVolume" Label="Start Volume" Required="true" Min="1"/>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField @bind-Value="endVolume" Label="End Volume" Required="true" Min="@startVolume"/>
+                    </MudItem>
+                }
                 <MudItem xs="6">
                     <MudDatePicker @bind-Date="publishDate" Label="Publish Date"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles" Accept=".jpg,.jpeg,.png"
-                                   MaximumFileCount="1">
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".jpg,.jpeg,.png"
+                                  MaximumFileCount="@(IsEdit || !isMultipleVolumes ? 1 : maxFileUploadCount)">
                         <ActivatorContent>
                             <MudButton HtmlTag="label"
                                        Variant="Variant.Filled"
                                        Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Image">
-                                Upload Cover Image
+                                @(IsEdit || !isMultipleVolumes ? "Upload Cover Image" : "Add Cover Images")
                             </MudButton>
                         </ActivatorContent>
                     </MudFileUpload>
-                    @if (!string.IsNullOrEmpty(lightNovel.ImagePath))
+                    
+                    @if (!IsEdit && isMultipleVolumes)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Info" Class="mt-1">
+                            Maximum of @maxFileUploadCount files. Images should follow naming convention: [TitleSlug]_[VolumeNumber]
+                        </MudText>
+                    }
+                    
+                    @if (hasUploadErrors)
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mt-2" ShowCloseIcon="true" CloseIconClicked="() => { hasUploadErrors = false; uploadErrorMessage = string.Empty; }">
+                            @uploadErrorMessage
+                        </MudAlert>
+                    }
+                    
+                    @if ((IsEdit || !isMultipleVolumes) && !string.IsNullOrEmpty(Book.ImagePath))
                     {
                         <div class="d-flex align-center mt-2">
                             <MudText Class="mr-2">Image selected:</MudText>
                             <MudChip T="string" Color="Color.Success"
-                                     Icon="@Icons.Material.Filled.Check">@Path.GetFileName(lightNovel.ImagePath)</MudChip>
+                                     Icon="@Icons.Material.Filled.Check">@System.IO.Path.GetFileName(Book.ImagePath)</MudChip>
                             <MudIconButton Icon="@Icons.Material.Filled.Clear" Size="Size.Small"
                                            OnClick="ClearSelectedImage"/>
+                        </div>
+                    }
+                    @if (!IsEdit && isMultipleVolumes && uploadedFiles.Any())
+                    {
+                        <div class="d-flex flex-column mt-2">
+                            <MudText>Uploaded Images (@uploadedFiles.Count):</MudText>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                @foreach (var file in uploadedFiles)
+                                {
+                                    <MudChip 
+                                        T="string" 
+                                        Color="@(invalidImageNames.Contains(file.Name) ? Color.Error : Color.Success)"
+                                        Icon="@(invalidImageNames.Contains(file.Name) ? Icons.Material.Filled.Error : Icons.Material.Filled.Check)" 
+                                        OnClick="@(() => RemoveUploadedFile(file))" 
+                                        Variant="Variant.Filled"
+                                        Class="cursor-pointer">
+                                        @file.Name
+                                    </MudChip>
+                                }
+                            </div>
+                            <MudButton Class="mt-2" Color="Color.Error" Variant="Variant.Text" 
+                                       OnClick="ClearAllSelectedImages">Clear All</MudButton>
                         </div>
                     }
                 </MudItem>
@@ -86,37 +143,23 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
-    
     [Parameter] public Book.LightNovel? LightNovelToEdit { get; set; }
-    [Parameter] public bool IsEdit { get; set; } = false;
-
-    private LightNovelMutable lightNovel;
-    private DateTime? publishDate;
-    private bool success = false;
-    private bool isSubmitting = false;
-    private MudForm form;
-    private IBrowserFile? uploadedFile;
-    private string originalFileExtension = string.Empty;
-    private string originalId = string.Empty;
-    private string originalTitleSlug = string.Empty;
     
-    // Store switch values in separate fields to better handle binding
-    private bool isDigital;
-    private bool isRead;
-
-    protected override void OnInitialized()
+    private LightNovelMutable lightNovel = new();
+    
+    protected override void InitializeData()
     {
-        // Initialize with default or existing light novel data
+        // Initialize with default or existing lightNovel data
         lightNovel = new LightNovelMutable();
+        Book = lightNovel;
+        BookType = "Light Novel";
         
         if (LightNovelToEdit is not null)
         {
             // Store original values
             originalId = LightNovelToEdit.Id;
-            originalTitleSlug = LightNovelToEdit.TitleSlug;
             
-            // Initialize form with existing light novel data
+            // Initialize form with existing lightNovel data
             lightNovel.SetTitle(LightNovelToEdit.Title);
             lightNovel.Author = LightNovelToEdit.Author;
             lightNovel.Illustrator = LightNovelToEdit.Illustrator;
@@ -125,154 +168,128 @@
             lightNovel.SetTitleSlug(LightNovelToEdit.TitleSlug);
             publishDate = LightNovelToEdit.PublishDate;
             
-            // Initialize switch values from existing light novel
+            // Initialize switch values from existing lightNovel
             isDigital = LightNovelToEdit.IsDigital;
             isRead = LightNovelToEdit.IsRead;
         }
     }
-
-    // A mutable class to work with form binding
-    private class LightNovelMutable
+    
+    protected override async Task UpdateSingle()
     {
-        private string _title = string.Empty;
-        private string _titleSlug = string.Empty;
-
-        public string Title
+        // Update image path one more time to ensure it uses latest title/volume
+        if (uploadedFile != null)
         {
-            get => _title;
-            set
-            {
-                _title = value;
-                // Only auto-generate slug if it hasn't been set manually
-                if (string.IsNullOrEmpty(_titleSlug))
-                {
-                    _titleSlug = GenerateSlug(value);
-                }
-            }
+            var fileExtension = Path.GetExtension(uploadedFile.Name);
+            var fileName = $"{lightNovel.TitleSlug}_{lightNovel.Volume}{fileExtension}";
+            lightNovel.ImagePath = Path.Combine("images", lightNovel.TitleSlug, fileName);
+
+            await SaveImageToFilePath(uploadedFile, lightNovel.ImagePath);
         }
 
-        public string TitleSlug 
-        { 
-            get => _titleSlug; 
-            private set => _titleSlug = value; 
+        // Convert from mutable model to immutable record
+        var lightNovelRecord = new Book.LightNovel(
+            lightNovel.Title,
+            lightNovel.TitleSlug,
+            lightNovel.Author,
+            lightNovel.Illustrator,
+            lightNovel.Volume,
+            lightNovel.ImagePath,
+            isDigital,
+            isRead,
+            publishDate,
+            originalId
+        );
+
+        await LightNovelRepository.UpdateAsync(originalId, lightNovelRecord);
+    }
+    
+    protected override async Task CreateSingle()
+    {
+        // Process the uploaded image if available
+        if (uploadedFile != null)
+        {
+            var fileExtension = Path.GetExtension(uploadedFile.Name);
+            var fileName = $"{lightNovel.TitleSlug}_{lightNovel.Volume}{fileExtension}";
+            lightNovel.ImagePath = Path.Combine("images", lightNovel.TitleSlug, fileName);
+            
+            await SaveImageToFilePath(uploadedFile, lightNovel.ImagePath);
         }
         
-        public string Author { get; set; } = string.Empty;
-        public string Illustrator { get; set; } = string.Empty;
-        public int Volume { get; set; } = 1;
-        public string? ImagePath { get; set; }
-
-        // For setting title without triggering slug generation (used for existing records)
-        public void SetTitle(string title)
+        // Create a new light novel record
+        var newLightNovel = new Book.LightNovel(
+            lightNovel.Title,
+            lightNovel.TitleSlug,
+            lightNovel.Author,
+            lightNovel.Illustrator,
+            lightNovel.Volume,
+            lightNovel.ImagePath,
+            isDigital,
+            isRead,
+            publishDate
+        );
+        
+        await LightNovelRepository.CreateAsync(newLightNovel);
+    }
+    
+    protected override async Task CreateMultiple()
+    {
+        // Create a directory if it doesn't exist
+        var dirPath = Path.Combine(Environment.WebRootPath, "images", lightNovel.TitleSlug);
+        Directory.CreateDirectory(dirPath);
+        
+        // Map of volume numbers to their respective image files
+        var volumeImageMap = new Dictionary<int, IBrowserFile>();
+        
+        // Parse volume numbers from file names and map them to files
+        foreach (var file in uploadedFiles.Where(f => !invalidImageNames.Contains(f.Name)))
         {
-            _title = title;
-        }
-
-        // For setting slug directly (used for existing records)
-        public void SetTitleSlug(string slug)
-        {
-            _titleSlug = slug;
-        }
-
-        // Helper method to generate slug from title
-        private string GenerateSlug(string title)
-        {
-            // Remove special characters and replace spaces with empty string
-            return Regex.Replace(title, @"[^a-zA-Z0-9]", "");
-        }
-    }
-
-    private void Cancel()
-    {
-        MudDialog.Cancel();
-    }
-
-    private async Task UploadFiles(IBrowserFile file)
-    {
-        uploadedFile = file;
-
-        // Store the original file extension
-        originalFileExtension = Path.GetExtension(file.Name);
-
-        // Generate filename based on title slug and volume number
-        UpdateImagePath();
-    }
-
-    private void UpdateImagePath()
-    {
-        if (uploadedFile is null || string.IsNullOrEmpty(lightNovel.TitleSlug)) return;
-        var fileName = $"{lightNovel.TitleSlug}_{lightNovel.Volume}{originalFileExtension}";
-        lightNovel.ImagePath = Path.Combine("images", lightNovel.TitleSlug, fileName);
-    }
-
-    private void ClearSelectedImage()
-    {
-        lightNovel.ImagePath = null;
-        uploadedFile = null;
-        originalFileExtension = string.Empty;
-    }
-
-    private async Task Submit()
-    {
-        await form.Validate();
-
-        if (success)
-        {
-            isSubmitting = true;
-
-            try
+            var fileName = Path.GetFileNameWithoutExtension(file.Name);
+            var expectedNamePattern = $"{lightNovel.TitleSlug}_";
+            
+            if (fileName.StartsWith(expectedNamePattern))
             {
-                // Use the original title slug for existing light novel to maintain consistency
-                string titleSlugToUse = IsEdit ? originalTitleSlug : lightNovel.TitleSlug;
+                var volumeStr = fileName.Substring(expectedNamePattern.Length);
+                if (int.TryParse(volumeStr, out int volumeNumber) && 
+                    volumeNumber >= startVolume && volumeNumber <= endVolume)
+                {
+                    volumeImageMap[volumeNumber] = file;
+                }
+            }
+        }
+        
+        // Create a lightNovel volume for each specified volume
+        for (int volume = startVolume; volume <= endVolume; volume++)
+        {
+            string? imagePath = null;
+            
+            // Check if we have an image for this volume
+            if (volumeImageMap.TryGetValue(volume, out var imageFile))
+            {
+                var fileExtension = fileExtensionMap[imageFile.Name];
+                var fileName = $"{lightNovel.TitleSlug}_{volume}{fileExtension}";
+                var filePath = Path.Combine(dirPath, fileName);
                 
-                // Update image path one more time to ensure it uses latest title/volume
-                if (uploadedFile != null)
-                {
-                    // For edit mode, keep file naming consistent with original slug
-                    var fileName = $"{titleSlugToUse}_{lightNovel.Volume}{originalFileExtension}";
-                    lightNovel.ImagePath = Path.Combine("images", titleSlugToUse, fileName);
-
-                    var filePath = Path.Combine(Environment.WebRootPath, lightNovel.ImagePath!);
-
-                    // Ensure directory exists
-                    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-
-                    // Save the file to disk
-                    await using var fileStream = new FileStream(filePath, FileMode.Create);
-                    await uploadedFile.OpenReadStream(maxAllowedSize: 10485760).CopyToAsync(fileStream);
-                }
-
-                // Convert from mutable model to immutable record
-                var lightNovelRecord = new Book.LightNovel(
-                    lightNovel.Title,
-                    titleSlugToUse,
-                    lightNovel.Author,
-                    lightNovel.Illustrator,
-                    lightNovel.Volume,
-                    lightNovel.ImagePath,
-                    isDigital,   // Use the directly bound switch value
-                    isRead,      // Use the directly bound switch value
-                    publishDate,
-                    IsEdit ? originalId : null
-                );
-
-                if (IsEdit)
-                {
-                    await LightNovelRepository.UpdateAsync(originalId, lightNovelRecord);
-                }
-                else
-                {
-                    await LightNovelRepository.CreateAsync(lightNovelRecord);
-                }
-
-                // Return the light novel to the caller
-                MudDialog.Close(DialogResult.Ok(lightNovelRecord));
+                await using FileStream fs = new(filePath, FileMode.Create);
+                await imageFile.OpenReadStream(maxAllowedSize: 10485760).CopyToAsync(fs);
+                
+                // Set the image path
+                imagePath = Path.Combine("images", lightNovel.TitleSlug, fileName);
             }
-            catch (Exception ex)
-            {
-                isSubmitting = false;
-                MudDialog.Close(DialogResult.Cancel());
-            }
+            
+            // Create and save the lightNovel volume
+            var newLightNovel = new Book.LightNovel(
+                lightNovel.Title,
+                lightNovel.TitleSlug,
+                lightNovel.Author,
+                lightNovel.Illustrator,
+                volume,
+                imagePath,
+                isDigital,
+                isRead,
+                publishDate
+            );
+            
+            await LightNovelRepository.CreateAsync(newLightNovel);
         }
     }
 }

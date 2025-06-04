@@ -5,6 +5,7 @@
 @inject MangaRepository MangaRepository
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IWebHostEnvironment Environment
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudPaper Elevation="3" Class="pa-4 mb-4">
@@ -147,7 +148,7 @@
 
         if (!result.Canceled)
         {
-            await DeleteManga(manga.Id);
+            await DeleteManga(manga.Id, manga.ImagePath);
         }
     }
 
@@ -180,11 +181,12 @@
         }
     }
 
-    private async Task DeleteManga(string id)
+    private async Task DeleteManga(string id, string imagePath)
     {
         try
         {
             var success = await MangaRepository.DeleteAsync(id);
+            var successImage = DeleteImageFile(imagePath);
             if (success)
             {
                 Snackbar.Add("Manga deleted successfully", Severity.Success);
@@ -211,6 +213,7 @@
             foreach (var manga in mangasToDelete)
             {
                 var success = await MangaRepository.DeleteAsync(manga.Id);
+                var successImage = DeleteImageFile(manga.ImagePath);
                 if (success) deleteCount++;
             }
 
@@ -239,6 +242,7 @@
             foreach (var manga in allMangas)
             {
                 var success = await MangaRepository.DeleteAsync(manga.Id);
+                var successImage = DeleteImageFile(manga.ImagePath);
                 if (success) deleteCount++;
             }
 
@@ -256,5 +260,37 @@
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
+    }
+    
+    private bool DeleteImageFile(string imagePath)
+    {
+        if (string.IsNullOrEmpty(imagePath))
+            return false;
+            
+        try
+        {
+            var fullPath = Path.Combine(Environment.WebRootPath, imagePath);
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+                
+                // Check if directory is empty after deleting the file
+                var directory = Path.GetDirectoryName(fullPath);
+                if (directory != null && Directory.Exists(directory) && !Directory.EnumerateFiles(directory).Any())
+                {
+                    // Remove empty directory
+                    Directory.Delete(directory);
+                }
+                
+                return true;
+            }
+        }
+        catch (Exception)
+        {
+            // Handle any file system exceptions
+            return false;
+        }
+        
+        return false;
     }
 }

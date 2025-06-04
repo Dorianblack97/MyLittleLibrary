@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using MyLittleLibrary.Domain;
 using MyLittleLibrary.Infrastructure.Options;
 using MongoDB.Bson;
+using MyLittleLibrary.Infrastructure.Constants;
 
 namespace MyLittleLibrary.Infrastructure;
 

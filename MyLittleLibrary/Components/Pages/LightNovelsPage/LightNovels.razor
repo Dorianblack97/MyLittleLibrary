@@ -62,8 +62,12 @@
                             <MudItem xs="4">
                                 @if (!string.IsNullOrEmpty(series.CoverImage))
                                 {
-                                    <img src="@series.CoverImage" alt="@series.Title"
-                                         style="width: 100%; max-height: 150px; object-fit: cover;"/>
+                                    <MudImage 
+                                        Src="@series.CoverImage" 
+                                        Alt="@series.Title"
+                                        ObjectFit="ObjectFit.Cover"
+                                        Height="150"
+                                        Elevation="0" />
                                 }
                                 else
                                 {

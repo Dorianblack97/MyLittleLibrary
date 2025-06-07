@@ -60,58 +60,65 @@
     @* Statistics Cards *@
     <MudGrid Class="mb-6">
         <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
+            <MudCard Elevation="4" Class="pa-4" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
-                    <MudText Typo="Typo.h4" Color="Color.Secondary">@filmCount</MudText>
-                    <MudText Typo="Typo.body2">Films</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
-                <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
-                    <div class="d-flex justify-center gap-2">
-                        <div>
-                            <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaSeriesCount</MudText>
-                            <MudText Typo="Typo.body2">Series</MudText>
-                        </div>
-                        <MudDivider Vertical="true" FlexItem="true" />
-                        <div>
-                            <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaVolumeCount</MudText>
-                            <MudText Typo="Typo.body2">Volumes</MudText>
-                        </div>
+                    <div class="d-flex flex-column align-start">
+                        <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
+                        <MudText Typo="Typo.h4" Color="Color.Secondary">@filmCount</MudText>
+                        <MudText Typo="Typo.body2">Films</MudText>
                     </div>
-                    <MudText Typo="Typo.body2" Class="mt-2">Manga</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
+            <MudCard Elevation="4" Class="pa-4" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
-                    <div class="d-flex justify-center gap-2">
-                        <div>
-                            <MudText Typo="Typo.h4" Color="Color.Secondary">@lightNovelSeriesCount</MudText>
-                            <MudText Typo="Typo.body2">Series</MudText>
+                    <div class="d-flex flex-column align-start">
+                        <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
+                        <div class="d-flex align-center gap-2">
+                            <div>
+                                <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaSeriesCount</MudText>
+                                <MudText Typo="Typo.body2">Series</MudText>
+                            </div>
+                            <div>
+                                <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaVolumeCount</MudText>
+                                <MudText Typo="Typo.body2">Volumes</MudText>
+                            </div>
                         </div>
-                        <MudDivider Vertical="true" FlexItem="true" />
-                        <div>
-                            <MudText Typo="Typo.h4" Color="Color.Secondary">@lightNovelVolumeCount</MudText>
-                            <MudText Typo="Typo.body2">Volumes</MudText>
-                        </div>
+                        <MudText Typo="Typo.body2" Class="mt-2">Manga</MudText>
                     </div>
-                    <MudText Typo="Typo.body2" Class="mt-2">Light Novels</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
-            <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
+            <MudCard Elevation="4" Class="pa-4" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
-                    <MudText Typo="Typo.h4" Color="Color.Secondary">@totalCount</MudText>
-                    <MudText Typo="Typo.body2">Total Items (Volumes + Films)</MudText>
+                    <div class="d-flex flex-column align-start">
+                        <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
+                        <div class="d-flex align-center gap-2">
+                            <div>
+                                <MudText Typo="Typo.h4" Color="Color.Secondary">@lightNovelSeriesCount</MudText>
+                                <MudText Typo="Typo.body2">Series</MudText>
+                            </div>
+                            <div>
+                                <MudText Typo="Typo.h4" Color="Color.Secondary">@lightNovelVolumeCount</MudText>
+                                <MudText Typo="Typo.body2">Volumes</MudText>
+                            </div>
+                        </div>
+                        <MudText Typo="Typo.body2" Class="mt-2">Light Novels</MudText>
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudCard Elevation="4" Class="pa-4" Style="height: 200px;">
+                <MudCardContent>
+                    <div class="d-flex flex-column align-start">
+                        <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
+                        <MudText Typo="Typo.h4" Color="Color.Secondary">@totalCount</MudText>
+                        <MudText Typo="Typo.body2">Total Items</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-1">All Volumes + Films</MudText>
+                    </div>
                 </MudCardContent>
             </MudCard>
         </MudItem>
@@ -123,7 +130,8 @@
         <MudItem xs="12" md="4">
             <MudCard Elevation="3" Class="d-flex flex-column" Style="height: 240px;">
                 <MudCardContent Class="flex-grow-1 text-center pa-4">
-                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Secondary" Size="Size.Large" Class="mb-3"/>
+                    <MudIcon Icon="@Icons.Material.Filled.Movie" Color="Color.Secondary" Size="Size.Large"
+                             Class="mb-3"/>
                     <MudText Typo="Typo.h6" Class="mb-2">Films</MudText>
                     <MudText Typo="Typo.body2">Browse and manage your film collection</MudText>
                 </MudCardContent>
@@ -260,12 +268,12 @@
         var lightNovelList = await LightNovelRepository.GetAllAsync();
 
         filmCount = filmList.Count;
-        
+
         // For manga, count both series and total volumes
         var mangaGroups = mangaList.GroupBy(m => m.Title);
         mangaSeriesCount = mangaGroups.Count();
         mangaVolumeCount = mangaList.Count;
-        
+
         // For light novels, count both series and total volumes
         var lightNovelGroups = lightNovelList.GroupBy(l => l.Title);
         lightNovelSeriesCount = lightNovelGroups.Count();
@@ -302,4 +310,5 @@
             _ => "Unknown"
         };
     }
+
 }

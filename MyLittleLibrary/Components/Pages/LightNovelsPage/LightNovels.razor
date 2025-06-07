@@ -173,7 +173,10 @@
         if (!result.Canceled)
         {
             Snackbar.Add("Light Novel successfully added!", Severity.Success);
+            // Force a reload with a slight delay to ensure file is fully saved
+            await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadLightNovelCollection(); // Reload the light novel list
+            StateHasChanged(); // Force UI refresh
         }
     }
 

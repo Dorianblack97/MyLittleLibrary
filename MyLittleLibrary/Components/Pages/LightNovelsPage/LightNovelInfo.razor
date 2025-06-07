@@ -152,7 +152,9 @@
         
         if (!result.Canceled)
         {
+            await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadLightNovelVolumes();
+            StateHasChanged(); // Force UI refresh
         }
     }
     
@@ -193,7 +195,9 @@
             
             if (!result.Canceled)
             {
+                await Task.Delay(100); // Small delay to ensure file system operations complete
                 await LoadLightNovelVolumes();
+                StateHasChanged(); // Force UI refresh
             }
         }
         else

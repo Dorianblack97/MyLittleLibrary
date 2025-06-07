@@ -71,30 +71,47 @@
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large"
-                             Class="mb-2"/>
-                    <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaCount</MudText>
-                    <MudText Typo="Typo.body2">Manga</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.MenuBook" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
+                    <div class="d-flex justify-center gap-2">
+                        <div>
+                            <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaSeriesCount</MudText>
+                            <MudText Typo="Typo.body2">Series</MudText>
+                        </div>
+                        <MudDivider Vertical="true" FlexItem="true" />
+                        <div>
+                            <MudText Typo="Typo.h4" Color="Color.Secondary">@mangaVolumeCount</MudText>
+                            <MudText Typo="Typo.body2">Volumes</MudText>
+                        </div>
+                    </div>
+                    <MudText Typo="Typo.body2" Class="mt-2">Manga</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Secondary" Size="Size.Large"
-                             Class="mb-2"/>
-                    <MudText Typo="Typo.h4" Color="Color.Secondary">@lightNovelCount</MudText>
-                    <MudText Typo="Typo.body2">Light Novels</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.AutoStories" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
+                    <div class="d-flex justify-center gap-2">
+                        <div>
+                            <MudText Typo="Typo.h4" Color="Color.Secondary">@lightNovelSeriesCount</MudText>
+                            <MudText Typo="Typo.body2">Series</MudText>
+                        </div>
+                        <MudDivider Vertical="true" FlexItem="true" />
+                        <div>
+                            <MudText Typo="Typo.h4" Color="Color.Secondary">@lightNovelVolumeCount</MudText>
+                            <MudText Typo="Typo.body2">Volumes</MudText>
+                        </div>
+                    </div>
+                    <MudText Typo="Typo.body2" Class="mt-2">Light Novels</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="3">
             <MudCard Elevation="4" Class="pa-4 text-center" Style="height: 200px;">
                 <MudCardContent>
-                    <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Color="Color.Secondary" Size="Size.Large"
-                             Class="mb-2"/>
+                    <MudIcon Icon="@Icons.Material.Filled.CollectionsBookmark" Color="Color.Secondary" Size="Size.Large" Class="mb-2"/>
                     <MudText Typo="Typo.h4" Color="Color.Secondary">@totalCount</MudText>
-                    <MudText Typo="Typo.body2">Total Items</MudText>
+                    <MudText Typo="Typo.body2">Total Items (Volumes + Films)</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
@@ -223,9 +240,11 @@
 @code {
     private string searchQuery = "";
     private int filmCount = 0;
-    private int mangaCount = 0;
-    private int lightNovelCount = 0;
-    private int totalCount => filmCount + mangaCount + lightNovelCount;
+    private int mangaSeriesCount = 0;
+    private int mangaVolumeCount = 0;
+    private int lightNovelSeriesCount = 0;
+    private int lightNovelVolumeCount = 0;
+    private int totalCount => filmCount + mangaVolumeCount + lightNovelVolumeCount;
     private List<BaseObject> recentItems = new();
 
     protected override async Task OnInitializedAsync()
@@ -240,9 +259,17 @@
         var mangaList = await MangaRepository.GetAllAsync();
         var lightNovelList = await LightNovelRepository.GetAllAsync();
 
-        filmCount = filmList.GroupBy(f => f.Title).Count();
-        mangaCount = mangaList.GroupBy(m => m.Title).Count();
-        lightNovelCount = lightNovelList.GroupBy(l => l.Title).Count();
+        filmCount = filmList.Count;
+        
+        // For manga, count both series and total volumes
+        var mangaGroups = mangaList.GroupBy(m => m.Title);
+        mangaSeriesCount = mangaGroups.Count();
+        mangaVolumeCount = mangaList.Count;
+        
+        // For light novels, count both series and total volumes
+        var lightNovelGroups = lightNovelList.GroupBy(l => l.Title);
+        lightNovelSeriesCount = lightNovelGroups.Count();
+        lightNovelVolumeCount = lightNovelList.Count;
     }
 
     private async Task LoadRecentItems()

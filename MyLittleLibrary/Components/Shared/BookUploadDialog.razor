@@ -222,6 +222,9 @@
                     // Create multiple volumes
                     await CreateMultiple();
                 }
+            
+                // Give the file system operations a moment to complete
+                await Task.Delay(50);
 
                 // Return result to the caller
                 var result = new
@@ -229,7 +232,7 @@
                     Success = true,
                     InvalidImages = invalidImages
                 };
-                
+            
                 MudDialog.Close(DialogResult.Ok(result));
             }
             catch (Exception ex)

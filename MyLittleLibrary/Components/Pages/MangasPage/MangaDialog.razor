@@ -55,7 +55,7 @@
                     <MudDatePicker @bind-Date="publishDate" Label="Publish Date"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".jpg,.jpeg,.png"
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".jpg,.jpeg,.png,.webp"
                                   MaximumFileCount="@(IsEdit || !isMultipleVolumes ? 1 : maxFileUploadCount)">
                         <ActivatorContent>
                             <MudButton HtmlTag="label"

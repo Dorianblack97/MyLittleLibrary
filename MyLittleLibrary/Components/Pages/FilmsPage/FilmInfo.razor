@@ -82,20 +82,12 @@
                     }
 
                     <div class="mt-4">
-                        <MudChip T="string" Color="@(film.IsWatched ? Color.Success : Color.Warning)" 
+                        <MudChip T="string" Color="@(film.IsWatched ? Color.Success : Color.Warning)"
+                                 Onclick="() => ToggleWatchedStatus()"
                                  Size="Size.Medium"
                                  Icon="@(film.IsWatched ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Schedule)">
                             @(film.IsWatched ? "Watched" : "Not Watched")
                         </MudChip>
-                    </div>
-
-                    <div class="mt-4">
-                        <MudButton StartIcon="@(film.IsWatched ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
-                                   Color="Color.Primary"
-                                   Variant="Variant.Filled"
-                                   OnClick="ToggleWatchedStatus">
-                            Mark as @(film.IsWatched ? "Unwatched" : "Watched")
-                        </MudButton>
                     </div>
                 </MudItem>
             </MudGrid>

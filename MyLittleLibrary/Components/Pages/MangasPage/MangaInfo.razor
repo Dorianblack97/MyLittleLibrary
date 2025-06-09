@@ -3,21 +3,23 @@
 @using MyLittleLibrary.Infrastructure
 @inject MangaRepository MangaRepository
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
+<PageTitle>Manga Details</PageTitle>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <div class="d-flex justify-space-between align-center mb-4">
         <MudText Typo="Typo.h3">@Title</MudText>
-        <MudIconButton Color="Color.Primary" 
+        <MudIconButton Color="Color.Primary"
                        Icon="@Icons.Material.Filled.Add"
                        Size="Size.Large"
                        OnClick="OpenAddVolumeDialog">
         </MudIconButton>
     </div>
-    
+
     @if (isLoading)
     {
         <div class="d-flex justify-center">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
         </div>
     }
     else if (mangaVolumes.Count == 0)
@@ -31,13 +33,13 @@
             {
                 <MudItem xs="12" sm="6" md="4" lg="3">
                     <MudCard Elevation="3" Class="h-100">
-                        <MudImage 
+                        <MudImage
                             Src="@manga.ImagePath"
                             ObjectFit="ObjectFit.Contain"
                             Height="250"
-                            Class="mx-auto my-2" 
+                            Class="mx-auto my-2"
                             Style="display: block; cursor: zoom-in;"
-                            @onclick="() => OpenImagePreview(manga.ImagePath)" />
+                            @onclick="() => OpenImagePreview(manga.ImagePath)"/>
                         <MudCardContent>
                             <MudText Typo="Typo.h6">Volume @manga.Volume</MudText>
                             <MudText Typo="Typo.body2">Author: @manga.Author</MudText>
@@ -48,41 +50,44 @@
                             }
                         </MudCardContent>
                         <MudCardActions>
-                            <MudChip T="string" OnClick="() => OnChipClicked(manga)" Color="@(manga.IsRead ? Color.Success : Color.Default)" 
-                                     Size="Size.Small" 
+                            <MudChip T="string" OnClick="() => OnChipClicked(manga)"
+                                     Color="@(manga.IsRead ? Color.Success : Color.Default)"
+                                     Size="Size.Small"
                                      Icon="@(manga.IsRead ? Icons.Material.Filled.Check : Icons.Material.Filled.HourglassEmpty)">
                                 @(manga.IsRead ? "Read" : "Unread")
                             </MudChip>
-                            <MudChip T="string" Color="Color.Default" 
-                                     Size="Size.Small" 
+                            <MudChip T="string" Color="Color.Default"
+                                     Size="Size.Small"
                                      Icon="@(manga.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
                                 @(manga.IsDigital ? "Digital" : "Physical")
                             </MudChip>
-                            <MudSpacer />
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                            <MudSpacer/>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                            Color="Color.Primary"
                                            Size="Size.Small"
                                            OnClick="() => OpenEditDialog(manga)"
-                                           aria-label="Edit" />
+                                           aria-label="Edit"/>
                         </MudCardActions>
                     </MudCard>
                 </MudItem>
             }
         </MudGrid>
     }
-    
+
     @if (showImagePreview)
     {
-        <MudOverlay Visible="showImagePreview" DarkBackground="true" Absolute="false" ZIndex="9999" OnClick="CloseImagePreview">
-            <div class="d-flex justify-center align-center overflow-auto" style="width: 100%; height: 100%; padding: 1rem;">
+        <MudOverlay Visible="showImagePreview" DarkBackground="true" Absolute="false" ZIndex="9999"
+                    OnClick="CloseImagePreview">
+            <div class="d-flex justify-center align-center overflow-auto"
+                 style="width: 100%; height: 100%; padding: 1rem;">
                 <div class="position-relative" style="max-width: 95vw; max-height: 90vh;">
-                    <MudImage 
-                        Src="@previewImagePath" 
-                        Alt="Full size manga cover" 
-                        Elevation="25" 
-                        Class="rounded-lg" 
+                    <MudImage
+                        Src="@previewImagePath"
+                        Alt="Full size manga cover"
+                        Elevation="25"
+                        Class="rounded-lg"
                         ObjectFit="ObjectFit.Contain"
-                        Style="max-width: 100%; max-height: 85vh; width: auto;" />
+                        Style="max-width: 100%; max-height: 85vh; width: auto;"/>
                 </div>
             </div>
         </MudOverlay>
@@ -90,34 +95,32 @@
 </MudContainer>
 
 @code {
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public required string Title { get; set; }
-    
+    [Parameter] [SupplyParameterFromQuery] public required string Title { get; set; }
+
     private List<Book.Manga> mangaVolumes = new();
     private bool isLoading = true;
     private bool showImagePreview = false;
     private string previewImagePath = string.Empty;
-    
+
     protected override async Task OnInitializedAsync()
     {
         await LoadMangaVolumes();
     }
-    
+
     protected override async Task OnParametersSetAsync()
     {
         await LoadMangaVolumes();
     }
-    
+
     private async Task LoadMangaVolumes()
     {
         isLoading = true;
-        
+
         try
         {
             // Fetch all manga volumes for this series from the repository
             var allMangas = await MangaRepository.GetAllByTitleAsync(Title);
-            
+
             // Filter mangas by title (case-insensitive)
             mangaVolumes = allMangas
                 .OrderBy(m => m.Volume)
@@ -135,11 +138,19 @@
 
     private async Task OnChipClicked(Book.Manga manga)
     {
-        var updatedManga = manga with { IsRead = !manga.IsRead };
-        await MangaRepository.UpdateAsync(updatedManga.Id, updatedManga);
-        await LoadMangaVolumes();
+        try
+        {
+            var updatedManga = manga with { IsRead = !manga.IsRead };
+            await MangaRepository.UpdateAsync(updatedManga.Id, updatedManga);
+            await LoadMangaVolumes();
+            Snackbar.Add($"Manga marked as {(!manga.IsRead ? "read" : "unread")}", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error updating manga status", Severity.Error);
+        }
     }
-    
+
     private async Task OpenEditDialog(Book.Manga manga)
     {
         var parameters = new DialogParameters
@@ -147,26 +158,27 @@
             ["MangaToEdit"] = manga,
             ["IsEdit"] = true
         };
-        
-        var options = new DialogOptions 
-        { 
+
+        var options = new DialogOptions
+        {
             CloseOnEscapeKey = true,
             FullWidth = true,
             MaxWidth = MaxWidth.Small,
             BackdropClick = false // Prevents accidental closing on mobile
         };
-        
+
         var dialog = await DialogService.ShowAsync<MangaDialog>("Edit Manga", parameters, options);
         var result = await dialog.Result;
-        
+
         if (!result.Canceled)
         {
+            Snackbar.Add("Manga successfully updated!", Severity.Success);
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadMangaVolumes();
             StateHasChanged(); // Force UI refresh
         }
     }
-    
+
     private async Task OpenAddVolumeDialog()
     {
         // Create a new manga object with the title pre-filled
@@ -187,26 +199,27 @@
             ["MangaToEdit"] = newManga,
             ["IsEdit"] = false
         };
-        
-        var options = new DialogOptions 
-        { 
+
+        var options = new DialogOptions
+        {
             CloseOnEscapeKey = true,
             FullWidth = true,
             MaxWidth = MaxWidth.Small,
             BackdropClick = false
         };
-        
+
         var dialog = await DialogService.ShowAsync<MangaDialog>("Add New Volume", parameters, options);
         var result = await dialog.Result;
-        
+
         if (!result.Canceled)
         {
+            Snackbar.Add("Manga successfully added!", Severity.Success);
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadMangaVolumes();
             StateHasChanged(); // Force UI refresh
         }
     }
-    
+
     private void OpenImagePreview(string imagePath)
     {
         if (!string.IsNullOrEmpty(imagePath))
@@ -215,9 +228,10 @@
             showImagePreview = true;
         }
     }
-    
+
     private void CloseImagePreview()
     {
         showImagePreview = false;
     }
+
 }

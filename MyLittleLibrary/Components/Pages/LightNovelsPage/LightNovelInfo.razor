@@ -3,7 +3,9 @@
 @using MyLittleLibrary.Infrastructure
 @inject LightNovelRepository LightNovelRepository
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
+<PageTitle>Light Novel Details</PageTitle>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <div class="d-flex justify-space-between align-center mb-4">
         <MudText Typo="Typo.h3">@Title</MudText>
@@ -126,9 +128,17 @@
 
     private async Task OnChipClicked(Book.LightNovel lightNovel)
     {
+        try
+        {
         var updatedLightNovel = lightNovel with { IsRead = !lightNovel.IsRead };
         await LightNovelRepository.UpdateAsync(updatedLightNovel.Id, updatedLightNovel);
         await LoadLightNovelVolumes();
+        Snackbar.Add($"Light novel marked as {(!lightNovel.IsRead ? "read" : "unread")}", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error updating light novel status", Severity.Error);
+        }
     }
     
     private async Task OpenEditDialog(Book.LightNovel lightNovel)
@@ -152,6 +162,7 @@
         
         if (!result.Canceled)
         {
+            Snackbar.Add("Light novel successfully updated!", Severity.Success);
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadLightNovelVolumes();
             StateHasChanged(); // Force UI refresh
@@ -170,7 +181,7 @@
                 titleSlug: lightNovelBase.TitleSlug,
                 author: lightNovelBase.Author,
                 illustrator: lightNovelBase.Illustrator,
-                volume: lightNovelBase.Volume + 1,
+                volume: int.TryParse(lightNovelBase.Volume, out var number) ? (number + 1).ToString() : string.Empty,
                 imagePath: null,
                 isDigital: lightNovelBase.IsDigital,
                 isRead: false,
@@ -195,6 +206,7 @@
             
             if (!result.Canceled)
             {
+                Snackbar.Add("Light novel successfully added!", Severity.Success);
                 await Task.Delay(100); // Small delay to ensure file system operations complete
                 await LoadLightNovelVolumes();
                 StateHasChanged(); // Force UI refresh

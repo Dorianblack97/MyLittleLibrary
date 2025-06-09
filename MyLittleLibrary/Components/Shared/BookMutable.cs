@@ -30,7 +30,7 @@ namespace MyLittleLibrary.Components.Shared
         
         public string Author { get; set; } = string.Empty;
         public string Illustrator { get; set; } = string.Empty;
-        public int Volume { get; set; } = 1;
+        public abstract object VolumeValue { get; }
         public string? ImagePath { get; set; }
 
         // For setting title without triggering slug generation (used for existing records)

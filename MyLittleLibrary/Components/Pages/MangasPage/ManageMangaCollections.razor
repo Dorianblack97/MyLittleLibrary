@@ -7,6 +7,7 @@
 @inject ISnackbar Snackbar
 @inject IWebHostEnvironment Environment
 
+<PageTitle>Manage Manga</PageTitle>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudPaper Elevation="3" Class="pa-4 mb-4">
         <MudText Typo="Typo.h4" Class="mb-4">Manage Manga Collections</MudText>
@@ -68,7 +69,24 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Volume">@context.Volume</MudTd>
+        <MudTd DataLabel="Volume">
+            <div class="d-flex align-center">
+                @if (!string.IsNullOrEmpty(context.ImagePath))
+                {
+                    <MudAvatar Class="mr-2" Style="width: 40px; height: 60px; border-radius: 4px;">
+                        <MudImage Src="@context.ImagePath" />
+                    </MudAvatar>
+                }
+                else
+                {
+                    <MudAvatar Color="Color.Secondary" Class="mr-2"
+                               Style="width: 40px; height: 60px; border-radius: 4px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Book"/>
+                    </MudAvatar>
+                }
+                <MudText>@context.Volume</MudText>
+            </div>
+        </MudTd>
         <MudTd DataLabel="Author">@context.Author</MudTd>
         <MudTd DataLabel="Illustrator">@context.Illustrator</MudTd>
         <MudTd DataLabel="Format">@(context.IsDigital ? "Digital" : "Physical")</MudTd>

@@ -2,6 +2,7 @@
 @using MyLittleLibrary.Infrastructure
 @inject FilmRepository FilmRepository
 @inject ISnackbar Snackbar
+@inject IWebHostEnvironment Environment
 
 <MudDialog>
     <DialogContent>
@@ -42,6 +43,31 @@
                                    Label="Release Date"
                                    Variant="Variant.Outlined"
                                    DateFormat="yyyy-MM-dd" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFilmCover" Accept=".jpg,.jpeg,.png,.webp"
+                                  MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton HtmlTag="label"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Image">
+                                Upload Film Poster
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    
+                    @if (!string.IsNullOrEmpty(film.ImagePath))
+                    {
+                        <div class="d-flex align-center mt-2">
+                            <MudText Class="mr-2">Image selected:</MudText>
+                            <MudChip T="string" Color="Color.Success"
+                                     Icon="@Icons.Material.Filled.Check">@Path.GetFileName(film.ImagePath)</MudChip>
+                            <MudIconButton Icon="@Icons.Material.Filled.Clear" Size="Size.Small"
+                                           OnClick="ClearSelectedImage"/>
+                        </div>
+                    }
                 </MudItem>
 
                 <MudItem xs="12">
@@ -87,6 +113,12 @@
     private bool isSubmitting = false;
 
     private void Cancel() => MudDialog.Cancel();
+    
+    // Add these fields to the @code section
+    private IBrowserFile? uploadedFile;
+    private string originalFileExtension = string.Empty;
+    private bool hasUploadErrors = false;
+    private string uploadErrorMessage = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -103,6 +135,56 @@
         }
     }
 
+    private void UploadFilmCover(IReadOnlyList<IBrowserFile> files)
+    {
+        // Reset error message
+        uploadErrorMessage = string.Empty;
+        hasUploadErrors = false;
+        
+        // Single upload mode
+        if (files.Count > 0)
+        {
+            uploadedFile = files[0];
+            originalFileExtension = Path.GetExtension(files[0].Name);
+            UpdateImagePath();
+        }
+    }
+
+    private void UpdateImagePath()
+    {
+        if (uploadedFile is null || string.IsNullOrEmpty(film.Title)) return;
+        
+        // Create a title slug for the file path
+        var titleSlug = film.Title.ToLowerInvariant()
+            .Replace(" ", "-")
+            .Replace("'", "")
+            .Replace(":", "")
+            .Replace(".", "");
+        
+        var fileName = $"{titleSlug}{originalFileExtension}";
+        film.ImagePath = Path.Combine("images", "films", fileName);
+    }
+
+    private void ClearSelectedImage()
+    {
+        film.ImagePath = null;
+        uploadedFile = null;
+        originalFileExtension = string.Empty;
+    }
+
+    private async Task SaveImageToFilePath(IBrowserFile file, string imagePath)
+    {
+        var filePath = Path.Combine(Environment.WebRootPath, imagePath);
+        
+        // Ensure directory exists
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        
+        // Save the file to disk
+        await using var fileStream = new FileStream(filePath, FileMode.Create);
+        await file.OpenReadStream(maxAllowedSize: 10485760).CopyToAsync(fileStream);
+    }
+
+    // Modify the existing Submit method to handle the uploaded file
     private async Task Submit()
     {
         if (!IsValid()) return;
@@ -116,6 +198,13 @@
                 .Replace("'", "")
                 .Replace(":", "")
                 .Replace(".", "");
+        
+            // Process the uploaded image if available
+            if (uploadedFile != null)
+            {
+                // Save the image to disk
+                await SaveImageToFilePath(uploadedFile, film.ImagePath);
+            }
 
             if (FilmToEdit is null)
             {
@@ -148,7 +237,7 @@
 
                 await FilmRepository.UpdateAsync(FilmToEdit.Id, updatedFilm);
             }
-            
+        
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)

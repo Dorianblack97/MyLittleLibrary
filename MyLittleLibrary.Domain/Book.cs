@@ -54,7 +54,7 @@ public record Book : BaseObject
     
     public sealed record LightNovel : Book
     {
-        public LightNovel(string title, string titleSlug, string author, string illustrator, int volume, 
+        public LightNovel(string title, string titleSlug, string author, string illustrator, string volume, 
             string? imagePath, bool isDigital, bool isRead, DateTime? publishDate, string id = null) 
             : base(title, titleSlug, imagePath, Collection.LightNovel, id)
         {
@@ -70,7 +70,7 @@ public record Book : BaseObject
         }
 
         public string Author { get; init; }
-        public int Volume { get; init; }
+        public string Volume { get; init; }
         public string? Illustrator { get; init; }
         public bool IsDigital { get; init; }
         public bool IsRead { get; init; }

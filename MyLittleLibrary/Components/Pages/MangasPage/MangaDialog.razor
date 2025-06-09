@@ -18,15 +18,15 @@
         <MudForm @ref="form" @bind-IsValid="@success">
             <MudGrid>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="Book.Title" Label="Title" Required="true"
+                    <MudTextField @bind-Value="manga.Title" Label="Title" Required="true"
                                   RequiredError="Title is required!"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="Book.Author" Label="Author" Required="true"
+                    <MudTextField @bind-Value="manga.Author" Label="Author" Required="true"
                                   RequiredError="Author is required!"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="Book.Illustrator" Label="Illustrator"/>
+                    <MudTextField @bind-Value="manga.Illustrator" Label="Illustrator"/>
                 </MudItem>
                 
                 @if (!IsEdit)
@@ -39,7 +39,7 @@
                 @if (IsEdit || !isMultipleVolumes)
                 {
                     <MudItem xs="6">
-                        <MudNumericField @bind-Value="Book.Volume" Label="Volume" Required="true" Min="1"/>
+                        <MudNumericField @bind-Value="manga.Volume" Label="Volume" Required="true" Min="1"/>
                     </MudItem>
                 }
                 else
@@ -55,7 +55,7 @@
                     <MudDatePicker @bind-Date="publishDate" Label="Publish Date"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".jpg,.jpeg,.png"
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".jpg,.jpeg,.png,.webp"
                                   MaximumFileCount="@(IsEdit || !isMultipleVolumes ? 1 : maxFileUploadCount)">
                         <ActivatorContent>
                             <MudButton HtmlTag="label"
@@ -81,12 +81,12 @@
                         </MudAlert>
                     }
                     
-                    @if ((IsEdit || !isMultipleVolumes) && !string.IsNullOrEmpty(Book.ImagePath))
+                    @if ((IsEdit || !isMultipleVolumes) && !string.IsNullOrEmpty(manga.ImagePath))
                     {
                         <div class="d-flex align-center mt-2">
                             <MudText Class="mr-2">Image selected:</MudText>
                             <MudChip T="string" Color="Color.Success"
-                                     Icon="@Icons.Material.Filled.Check">@System.IO.Path.GetFileName(Book.ImagePath)</MudChip>
+                                     Icon="@Icons.Material.Filled.Check">@Path.GetFileName(manga.ImagePath)</MudChip>
                             <MudIconButton Icon="@Icons.Material.Filled.Clear" Size="Size.Small"
                                            OnClick="ClearSelectedImage"/>
                         </div>

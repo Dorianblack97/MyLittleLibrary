@@ -8,18 +8,19 @@
 @inject ISnackbar Snackbar
 @inject IWebHostEnvironment Environment
 
+<PageTitle>Manage Light Novels</PageTitle>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudPaper Elevation="3" Class="pa-4 mb-4">
         <MudText Typo="Typo.h4" Class="mb-4">Manage Light Novel Collections</MudText>
-        
+
         <MudGrid>
             <MudItem xs="12" sm="6" md="4">
-                <MudTextField @bind-Value="searchQuery" Label="Search by title" Immediate="true" 
+                <MudTextField @bind-Value="searchQuery" Label="Search by title" Immediate="true"
                               Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
                               OnAdornmentClick="SearchLightNovels" OnKeyDown="@OnSearchKeyDown"/>
             </MudItem>
             <MudItem xs="12" sm="6" md="8" Class="d-flex justify-end">
-                <MudButton Variant="Variant.Filled" Color="Color.Error" 
+                <MudButton Variant="Variant.Filled" Color="Color.Error"
                            StartIcon="@Icons.Material.Filled.DeleteSweep"
                            OnClick="@(() => OpenDeleteCollectionDialog())"
                            Disabled="@(!GroupedLightNovels.Any())">
@@ -32,12 +33,14 @@
     @if (isLoading)
     {
         <div class="d-flex justify-center">
-            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large"/>
         </div>
     }
     else if (!GroupedLightNovels.Any())
     {
-        <MudAlert Severity="Severity.Info" Class="mt-4">No light novel collections found. Try a different search term or add new light novels.</MudAlert>
+        <MudAlert Severity="Severity.Info" Class="mt-4">No light novel collections found. Try a different search term or
+            add new light novels.
+        </MudAlert>
     }
     else
     {
@@ -48,10 +51,10 @@
                     <div class="d-flex align-center">
                         <MudText Typo="Typo.h6" Class="flex-grow-1">@group.Key</MudText>
                         <MudButtonGroup>
-                            <MudButton Variant="Variant.Text" Color="Color.Error" 
-                                    StartIcon="@Icons.Material.Filled.Delete"
-                                    OnClick="@(() => OpenDeleteCollectionDialog(group.Key))"
-                                    Class="mr-2">
+                            <MudButton Variant="Variant.Text" Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Delete"
+                                       OnClick="@(() => OpenDeleteCollectionDialog(group.Key))"
+                                       Class="mr-2">
                                 Delete Series
                             </MudButton>
                         </MudButtonGroup>
@@ -69,19 +72,37 @@
                             <MudTh>Actions</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd DataLabel="Volume">@context.Volume</MudTd>
+                            <MudTd DataLabel="Volume">
+                                <div class="d-flex align-center">
+                                    @if (!string.IsNullOrEmpty(context.ImagePath))
+                                    {
+                                        <MudAvatar Class="mr-2" Style="width: 40px; height: 60px; border-radius: 4px;">
+                                            <MudImage Src="@context.ImagePath" />
+                                        </MudAvatar>
+                                    }
+                                    else
+                                    {
+                                        <MudAvatar Color="Color.Secondary" Class="mr-2"
+                                                   Style="width: 40px; height: 60px; border-radius: 4px;">
+                                            <MudIcon Icon="@Icons.Material.Filled.Book"/>
+                                        </MudAvatar>
+                                    }
+                                    <MudText>@context.Volume</MudText>
+                                </div>
+                            </MudTd>
                             <MudTd DataLabel="Author">@context.Author</MudTd>
                             <MudTd DataLabel="Illustrator">@context.Illustrator</MudTd>
                             <MudTd DataLabel="Format">@(context.IsDigital ? "Digital" : "Physical")</MudTd>
                             <MudTd DataLabel="Read Status">
-                                <MudChip T="string" Color="@(context.IsRead ? Color.Success : Color.Default)" Size="Size.Small">
+                                <MudChip T="string" Color="@(context.IsRead ? Color.Success : Color.Default)"
+                                         Size="Size.Small">
                                     @(context.IsRead ? "Read" : "Unread")
                                 </MudChip>
                             </MudTd>
                             <MudTd DataLabel="Publish Date">@(context.PublishDate?.ToShortDateString() ?? "-")</MudTd>
                             <MudTd>
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" 
-                                               OnClick="@(() => OpenDeleteLightNovelDialog(context))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                               OnClick="@(() => OpenDeleteLightNovelDialog(context))"/>
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
@@ -96,7 +117,7 @@
     private List<Book.LightNovel> allLightNovels = new();
     private bool isLoading = true;
 
-    private IEnumerable<IGrouping<string, Book.LightNovel>> GroupedLightNovels => 
+    private IEnumerable<IGrouping<string, Book.LightNovel>> GroupedLightNovels =>
         allLightNovels.GroupBy(ln => ln.Title);
 
     protected override async Task OnInitializedAsync()
@@ -114,7 +135,7 @@
     private async Task SearchLightNovels()
     {
         isLoading = true;
-        
+
         if (string.IsNullOrWhiteSpace(searchQuery))
         {
             allLightNovels = await LightNovelRepository.GetAllAsync();
@@ -123,7 +144,7 @@
         {
             allLightNovels = await LightNovelRepository.SearchByTitleAsync(searchQuery);
         }
-        
+
         isLoading = false;
     }
 
@@ -155,7 +176,7 @@
 
     private async Task OpenDeleteCollectionDialog(string title = null)
     {
-        string message = title == null 
+        string message = title == null
             ? "Are you sure you want to delete ALL light novel collections? This action cannot be undone."
             : $"Are you sure you want to delete the entire '{title}' series? This action cannot be undone.";
 
@@ -210,7 +231,7 @@
         {
             var lightNovelsToDelete = allLightNovels.Where(ln => ln.Title == title).ToList();
             int deleteCount = 0;
-            
+
             foreach (var lightNovel in lightNovelsToDelete)
             {
                 var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
@@ -239,7 +260,7 @@
         try
         {
             int deleteCount = 0;
-            
+
             foreach (var lightNovel in allLightNovels)
             {
                 var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
@@ -262,20 +283,20 @@
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
-    
-    
+
+
     private bool DeleteImageFile(string imagePath)
     {
         if (string.IsNullOrEmpty(imagePath))
             return false;
-            
+
         try
         {
             var fullPath = Path.Combine(Environment.WebRootPath, imagePath);
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
-                
+
                 // Check if directory is empty after deleting the file
                 var directory = Path.GetDirectoryName(fullPath);
                 if (directory != null && Directory.Exists(directory) && !Directory.EnumerateFiles(directory).Any())
@@ -283,7 +304,7 @@
                     // Remove empty directory
                     Directory.Delete(directory);
                 }
-                
+
                 return true;
             }
         }
@@ -292,7 +313,8 @@
             // Handle any file system exceptions
             return false;
         }
-        
+
         return false;
     }
+
 }

@@ -1,4 +1,6 @@
 ﻿@page "/lightnovel"
+@using MyLittleLibrary.Components.Shared
+@using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
 @inject LightNovelRepository LightNovelRepository
 @inject NavigationManager NavigationManager
@@ -7,10 +9,20 @@
 
 
 <PageTitle>Light Novel</PageTitle>
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2 px-sm-4">
+<div style="position: sticky; top: 64px; z-index: 1; padding-top: 8px;">
+
     <MudPaper Elevation="3" Class="pa-2 pa-sm-4 mb-4">
         <div class="d-flex flex-column flex-sm-row justify-space-between align-center gap-2">
-            <MudText Typo="Typo.h4" Class="mb-2 mb-sm-0">Light Novel Collection</MudText>
+            <MudText Typo="Typo.h4" Class="mb-2 mb-sm-0 mr-sm-4">Light Novel Collection</MudText>
+            <MudTextField
+                ValueChanged="@((string s) => SearchValueChanged(s))"
+                Immediate="true"
+                Placeholder="Search light novels by title, author, or illustrator..."
+                Adornment="Adornment.Start"
+                AdornmentIcon="@Icons.Material.Filled.Search"
+                IconSize="Size.Medium"
+                Class="mt-0 mb-2 mb-sm-0 flex-grow-1"
+                Clearable="true"/>
 
             <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-sm-auto">
                 <MudButton
@@ -38,8 +50,9 @@
             </div>
         </div>
     </MudPaper>
+</div>
 
-
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2 px-sm-4">
     @if (isLoading)
     {
         <div class="d-flex justify-center">
@@ -48,68 +61,86 @@
     }
     else if (lightNovelSeries.Count == 0)
     {
-        <MudAlert Severity="Severity.Info" Class="my-4">Your light novel collection is empty. Start adding light novels!</MudAlert>
+        <MudAlert Severity="Severity.Info" Class="my-4">Your light novel collection is empty. Start adding light
+            novels!
+        </MudAlert>
     }
     else
     {
-        <MudGrid>
-            @foreach (var series in lightNovelSeries)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="3" xxl="2">
-                    <MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer"
-                              @onclick="@(() => NavigateToSeriesDetails(series.Title))">
-                        <MudGrid>
-                            <MudItem xs="4">
-                                @if (!string.IsNullOrEmpty(series.CoverImage))
-                                {
-                                    <MudImage 
-                                        Src="@series.CoverImage" 
-                                        Alt="@series.Title"
-                                        ObjectFit="ObjectFit.Cover"
-                                        Height="150"
-                                        Elevation="0" />
-                                }
-                                else
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.Book" Size="Size.Large"
-                                             Style="width: 100%; height: 150px;"/>
-                                }
-                            </MudItem>
-                            <MudItem xs="8">
-                                <MudText Typo="Typo.h5" 
-                                         Style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">@series.Title</MudText>
-                                <MudText Typo="Typo.body1" Class="text-truncate d-block">Volumes: @series.VolumeCount</MudText>
-                                <MudText Typo="Typo.body2" Class="text-truncate d-block">Author: @series.Author</MudText>
-                                <MudText Typo="Typo.body2" Class="text-truncate d-block">Illustrator: @series.Illustrator</MudText>
-                                <MudText Typo="Typo.caption">
-                                    @if (series.CompletionPercentage == 100)
+        @if (filteredLightNovelSeries.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info" Class="my-4">No light novels found matching your search criteria.
+            </MudAlert>
+        }
+        else
+        {
+            <MudGrid>
+                @foreach (var series in filteredLightNovelSeries)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="3" xxl="2">
+                        <MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer"
+                                  @onclick="@(() => NavigateToSeriesDetails(series.Title))">
+                            <MudGrid>
+                                <MudItem xs="4">
+                                    @if (!string.IsNullOrEmpty(series.CoverImage))
                                     {
-                                        <MudChip T="string" Color="Color.Success" Size="Size.Small">Completed</MudChip>
+                                        <MudImage
+                                            Src="@series.CoverImage"
+                                            Alt="@series.Title"
+                                            ObjectFit="ObjectFit.Cover"
+                                            Height="150"
+                                            Elevation="0"
+                                            Fluid="true"
+                                            Style="max-height: 150px;"/>
                                     }
                                     else
                                     {
-                                        <MudChip T="string" Color="Color.Info"
-                                                 Size="Size.Small">@series.CompletionPercentage%
-                                        </MudChip>
+                                        <MudIcon Icon="@Icons.Material.Filled.Book" Size="Size.Large"
+                                                 Style="width: 100%; height: 150px;"/>
                                     }
-                                    <MudChip T="string" Color="Color.Default"
-                                             Size="Size.Small"
-                                             Icon="@(series.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
-                                        @(series.IsDigital ? "Digital" : "Physical")
-                                    </MudChip>
-                                </MudText>
-                            </MudItem>
-                        </MudGrid>
-                    </MudPaper>
-                </MudItem>
-            }
-        </MudGrid>
+                                </MudItem>
+                                <MudItem xs="8">
+                                    <MudText Typo="Typo.h5"
+                                             Style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">@series.Title</MudText>
+                                    <MudText Typo="Typo.body1" Class="text-truncate d-block">
+                                        Volumes: @series.VolumeCount</MudText>
+                                    <MudText Typo="Typo.body2" Class="text-truncate d-block">
+                                        Author: @series.Author</MudText>
+                                    <MudText Typo="Typo.body2" Class="text-truncate d-block">
+                                        Illustrator: @series.Illustrator</MudText>
+                                    <MudText Typo="Typo.caption">
+                                        @if (series.CompletionPercentage == 100)
+                                        {
+                                            <MudChip T="string" Color="Color.Success" Size="Size.Small">Completed
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Color="Color.Info"
+                                                     Size="Size.Small">@series.CompletionPercentage%
+                                            </MudChip>
+                                        }
+                                        <MudChip T="string" Color="Color.Default"
+                                                 Size="Size.Small"
+                                                 Icon="@(series.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
+                                            @(series.IsDigital ? "Digital" : "Physical")
+                                        </MudChip>
+                                    </MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
     }
 </MudContainer>
 
 @code {
     private bool isLoading = true;
     private List<LightNovelSeries> lightNovelSeries = new();
+    private List<LightNovelSeries> filteredLightNovelSeries = new();
+    private string searchString = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -140,6 +171,9 @@
                 })
                 .OrderBy(s => s.Title)
                 .ToList();
+
+            // Initialize filtered list with all light novels
+            filteredLightNovelSeries = lightNovelSeries.ToList();
         }
         catch (Exception)
         {
@@ -148,6 +182,35 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    // Handle search text changes
+    private void SearchValueChanged(string value)
+    {
+        searchString = value;
+        FilterLightNovelSeries();
+        StateHasChanged(); // Force UI update
+    }
+
+    // Filter light novel series based on the search string
+    private void FilterLightNovelSeries()
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            // If search is empty, show all light novels
+            filteredLightNovelSeries = lightNovelSeries.ToList();
+        }
+        else
+        {
+            // Filter light novels based on title, author, or illustrator
+            var search = searchString.Trim().ToLowerInvariant();
+            filteredLightNovelSeries = lightNovelSeries
+                .Where(ln =>
+                    ln.Title.ToLowerInvariant().Contains(search) ||
+                    ln.Author.ToLowerInvariant().Contains(search) ||
+                    ln.Illustrator.ToLowerInvariant().Contains(search))
+                .ToList();
         }
     }
 
@@ -191,4 +254,5 @@
         public string? CoverImage { get; set; }
         public int CompletionPercentage { get; set; }
     }
+
 }

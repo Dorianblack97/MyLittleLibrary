@@ -106,12 +106,12 @@
                                     <MudText Typo="Typo.caption">
                                         @if (series.CompletionPercentage == 100)
                                         {
-                                            <MudChip T="string" Color="Color.Success" Size="Size.Small">Completed
+                                            <MudChip T="string" Color="Color.Success" Size="Size.Small">Readed
                                             </MudChip>
                                         }
                                         else
                                         {
-                                            <MudChip T="string" Color="Color.Info"
+                                            <MudChip T="string" Color="Color.Info" Icon="@(Icons.Material.Filled.AutoStories)"
                                                      Size="Size.Small">@series.CompletionPercentage%
                                             </MudChip>
                                         }

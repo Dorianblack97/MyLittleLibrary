@@ -1,4 +1,5 @@
 ﻿@page "/film"
+@using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
 @inject FilmRepository FilmRepository
@@ -6,11 +7,21 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<PageTitle>Films</PageTitle>
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2 px-sm-4">
+
+<PageTitle>Film</PageTitle>
+<div style="position: sticky; top: 64px; z-index: 1; padding-top: 8px;">
     <MudPaper Elevation="3" Class="pa-2 pa-sm-4 mb-4">
         <div class="d-flex flex-column flex-sm-row justify-space-between align-center gap-2">
-            <MudText Typo="Typo.h4" Class="mb-2 mb-sm-0">Film Collection</MudText>
+            <MudText Typo="Typo.h4" Class="mb-2 mb-sm-0 mr-sm-4">Film Collection</MudText>
+            <MudTextField
+                ValueChanged="@((string s) => SearchValueChanged(s))"
+                Immediate="true"
+                Placeholder="Search films by title or director..."
+                Adornment="Adornment.Start"
+                AdornmentIcon="@Icons.Material.Filled.Search"
+                IconSize="Size.Medium"
+                Class="mt-0 mb-2 mb-sm-0 flex-grow-1"
+                Clearable="true"/>
 
             <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-sm-auto">
                 <MudButton
@@ -38,7 +49,9 @@
             </div>
         </div>
     </MudPaper>
+</div>
 
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2 px-sm-4">
     @if (isLoading)
     {
         <div class="d-flex justify-center">
@@ -51,61 +64,75 @@
     }
     else
     {
-        <MudGrid>
-            @foreach (var film in films)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="3" xxl="2">
-                    <MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer"
-                              @onclick="@(() => NavigateToFilmDetails(film.Title))">
-                        <MudGrid>
-                            <MudItem xs="4">
-                                @if (!string.IsNullOrEmpty(film.ImagePath))
-                                {
-                                    <img src="@film.ImagePath" alt="@film.Title"
-                                         style="width: 100%; max-height: 150px; object-fit: cover;"/>
-                                }
-                                else
-                                {
-                                    <MudIcon Icon="@Icons.Material.Filled.Movie" Size="Size.Large"
-                                             Style="width: 100%; height: 150px;"/>
-                                }
-                            </MudItem>
-                            <MudItem xs="8">
-                                <MudText Typo="Typo.h5" 
-                                         Style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">@film.Title</MudText>
-                                <MudText Typo="Typo.body2" Class="text-truncate d-block">Director: @film.Director</MudText>
-                                <MudText Typo="Typo.body2" Class="text-truncate d-block">Format: @film.Format</MudText>
-                                @if (film.ReleaseDate.HasValue)
-                                {
-                                    <MudText Typo="Typo.body2" Class="text-truncate d-block">Released: @film.ReleaseDate.Value.Year</MudText>
-                                }
-                                <MudText Typo="Typo.caption">
-                                    @if (film.IsWatched)
+        @if (filteredFilms.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info" Class="my-4">No films found matching your search criteria.</MudAlert>
+        }
+        else
+        {
+            <MudGrid>
+                @foreach (var film in filteredFilms)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="3" xxl="2">
+                        <MudPaper Elevation="3" Class="pa-4 mb-4 cursor-pointer"
+                                  @onclick="@(() => NavigateToFilmDetails(film.Title))">
+                            <MudGrid>
+                                <MudItem xs="4">
+                                    @if (!string.IsNullOrEmpty(film.CoverImage))
                                     {
-                                        <MudChip T="string" Color="Color.Success" Size="Size.Small">Watched</MudChip>
+                                        <MudImage
+                                            Src="@film.CoverImage"
+                                            Alt="@film.Title"
+                                            ObjectFit="ObjectFit.Cover"
+                                            Elevation="0"
+                                            Fluid="true"
+                                            Style="max-height: 150px;"/>
                                     }
                                     else
                                     {
-                                        <MudChip T="string" Color="Color.Warning" Size="Size.Small">Unwatched</MudChip>
+                                        <MudIcon Icon="@Icons.Material.Filled.Movie" Size="Size.Large"
+                                                 Style="width: 100%; height: 150px;"/>
                                     }
-                                    <MudChip T="string" Color="Color.Default"
-                                             Size="Size.Small"
-                                             Icon="@GetFormatIcon(film.Format)">
-                                        @film.Format
-                                    </MudChip>
-                                </MudText>
-                            </MudItem>
-                        </MudGrid>
-                    </MudPaper>
-                </MudItem>
-            }
-        </MudGrid>
+                                </MudItem>
+                                <MudItem xs="8">
+                                    <MudText Typo="Typo.h5"
+                                             Style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">@film.Title</MudText>
+                                    <MudText Typo="Typo.body2" Class="text-truncate d-block">
+                                        Director: @film.Director</MudText>
+                                    <MudText Typo="Typo.body2" Class="text-truncate d-block">
+                                        Format: @film.Format</MudText>
+                                    @if (film.ReleaseDate.HasValue)
+                                    {
+                                        <MudText Typo="Typo.body2" Class="text-truncate d-block">
+                                            Released: @film.ReleaseDate.Value.ToString("yyyy-MM-dd")
+                                        </MudText>
+                                    }
+                                    <MudText Typo="Typo.caption">
+                                        @if (film.IsWatched)
+                                        {
+                                            <MudChip T="string" Color="Color.Success" Size="Size.Small">Watched
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Color="Color.Info" Size="Size.Small">Unwatched</MudChip>
+                                        }
+                                    </MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
     }
 </MudContainer>
 
 @code {
     private bool isLoading = true;
-    private List<Video.Film> films = new();
+    private List<FilmModel> films = new();
+    private List<FilmModel> filteredFilms = new();
+    private string searchString = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -115,14 +142,32 @@
     private async Task LoadFilmCollection()
     {
         isLoading = true;
+
         try
         {
-            films = await FilmRepository.GetAllAsync();
-            films = films.OrderBy(f => f.Title).ToList();
+            // Get all films from the repository
+            var allFilms = await FilmRepository.GetAllAsync();
+
+            // Convert to FilmModel for display
+            films = allFilms
+                .Select(f => new FilmModel
+                {
+                    Title = f.Title,
+                    Director = f.Director,
+                    Format = f.Format,
+                    ReleaseDate = f.ReleaseDate,
+                    IsWatched = f.IsWatched,
+                    CoverImage = f.ImagePath
+                })
+                .OrderBy(f => f.Title)
+                .ToList();
+
+            // Initialize filtered list with all films
+            filteredFilms = films.ToList();
         }
         catch (Exception)
         {
-            // Handle exceptions
+            // Handle any exceptions
         }
         finally
         {
@@ -130,9 +175,38 @@
         }
     }
 
+    // Handle search text changes
+    private void SearchValueChanged(string value)
+    {
+        searchString = value;
+        FilterFilms();
+        StateHasChanged(); // Force UI update
+    }
+
+    // Filter films based on the search string
+    private void FilterFilms()
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            // If search is empty, show all films
+            filteredFilms = films.ToList();
+        }
+        else
+        {
+            // Filter films based on title or director
+            var search = searchString.Trim().ToLowerInvariant();
+            filteredFilms = films
+                .Where(f =>
+                    f.Title.ToLowerInvariant().Contains(search) ||
+                    f.Director.ToLowerInvariant().Contains(search))
+                .ToList();
+        }
+    }
+
     private void NavigateToFilmDetails(string title)
     {
-        NavigationManager.NavigateTo($"/films/filminfo?title={Uri.EscapeDataString(title)}");
+        // Navigate to the FilmInfo page with the title as a query parameter
+        NavigationManager.NavigateTo($"/film/filminfo?title={Uri.EscapeDataString(title)}");
     }
 
     private async Task OpenAddFilmDialog()
@@ -142,7 +216,7 @@
             CloseOnEscapeKey = true,
             FullWidth = true,
             MaxWidth = MaxWidth.Small,
-            BackdropClick = false
+            BackdropClick = false // Prevents accidental closing on mobile
         };
 
         var dialog = await DialogService.ShowAsync<FilmDialog>("Add New Film", options);
@@ -151,20 +225,22 @@
         if (!result.Canceled)
         {
             Snackbar.Add("Film successfully added!", Severity.Success);
-            await LoadFilmCollection();
+            // Force a reload with a slight delay to ensure file is fully saved
+            await Task.Delay(100); // Small delay to ensure file system operations complete
+            await LoadFilmCollection(); // Reload the film list
+            StateHasChanged(); // Force UI refresh
         }
     }
 
-    private string GetFormatIcon(VideoFormat format)
+    // Helper class to represent a film based on Video.Film
+    public class FilmModel
     {
-        return format switch
-        {
-            VideoFormat.BluRay => Icons.Material.Filled.Album,
-            VideoFormat.BluRay4k => Icons.Material.Filled.Album,
-            VideoFormat.Dvd => Icons.Material.Filled.Album,
-            VideoFormat.Digital => Icons.Material.Filled.CloudDownload,
-            VideoFormat.Vhs => Icons.Material.Filled.Videocam,
-            _ => Icons.Material.Filled.Movie
-        };
+        public string Title { get; set; } = string.Empty;
+        public string Director { get; set; } = string.Empty;
+        public VideoFormat Format { get; set; }
+        public bool IsWatched { get; set; }
+        public DateTime? ReleaseDate { get; set; }
+        public string? CoverImage { get; set; }
     }
+
 }

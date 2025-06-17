@@ -6,16 +6,21 @@
 @inject ISnackbar Snackbar
 
 <PageTitle>Manga Details</PageTitle>
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-    <div class="d-flex justify-space-between align-center mb-4">
-        <MudText Typo="Typo.h3">@Title</MudText>
-        <MudIconButton Color="Color.Primary"
-                       Icon="@Icons.Material.Filled.Add"
-                       Size="Size.Large"
-                       OnClick="OpenAddVolumeDialog">
-        </MudIconButton>
-    </div>
 
+<div style="position: sticky; top: 64px; z-index: 1; padding-top: 8px;">
+    <MudPaper Elevation="3" Class="pa-2 pa-sm-4 mb-4">
+        <div class="d-flex justify-space-between align-center">
+            <MudText Typo="Typo.h3">@Title</MudText>
+            <MudIconButton Color="Color.Primary"
+                        Icon="@Icons.Material.Filled.Add"
+                        Size="Size.Large"
+                        OnClick="OpenAddVolumeDialog">
+            </MudIconButton>
+        </div>
+    </MudPaper>
+</div>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-2">
     @if (isLoading)
     {
         <div class="d-flex justify-center">
@@ -34,11 +39,11 @@
                 <MudItem xs="12" sm="6" md="4" lg="3">
                     <MudCard Elevation="3" Class="h-100">
                         <MudImage
+                            Fluid="true"
                             Src="@manga.ImagePath"
                             ObjectFit="ObjectFit.Contain"
-                            Height="250"
                             Class="mx-auto my-2"
-                            Style="display: block; cursor: zoom-in;"
+                            Style="display: block; cursor: zoom-in; max-height: 250px;"
                             @onclick="() => OpenImagePreview(manga.ImagePath)"/>
                         <MudCardContent>
                             <MudText Typo="Typo.h6">Volume @manga.Volume</MudText>
@@ -233,5 +238,4 @@
     {
         showImagePreview = false;
     }
-
 }

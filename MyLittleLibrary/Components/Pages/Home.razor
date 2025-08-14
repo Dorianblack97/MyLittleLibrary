@@ -4,7 +4,7 @@
 @inject Application.IMangaService MangaService
 @inject Application.ILightNovelService LightNovelService
 @inject Application.IFilmService FilmService
-@inject BaseObjectRepository BaseObjectRepository
+@inject Application.IBaseObjectService BaseObjectService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
@@ -292,7 +292,7 @@
 
     private async Task LoadRecentItems()
     {
-        recentItems = await BaseObjectRepository.GetMostRecentAsync();
+        recentItems = await BaseObjectService.GetMostRecentAsync();
     }
 
     private async Task PerformSearch()

@@ -1,6 +1,6 @@
 ﻿@using MyLittleLibrary.Domain
-@using MyLittleLibrary.Infrastructure
-@inject FilmRepository FilmRepository
+@using MyLittleLibrary.Application
+@inject IFilmService FilmService
 @inject ISnackbar Snackbar
 @inject IWebHostEnvironment Environment
 
@@ -219,7 +219,7 @@
                     releaseDate: film.ReleaseDate
                 );
 
-                await FilmRepository.CreateAsync(newFilm);
+                await FilmService.CreateAsync(newFilm);
             }
             else
             {
@@ -235,7 +235,7 @@
                     id: FilmToEdit.Id
                 );
 
-                await FilmRepository.UpdateAsync(FilmToEdit.Id, updatedFilm);
+                await FilmService.UpdateAsync(FilmToEdit.Id, updatedFilm);
             }
         
             MudDialog.Close(DialogResult.Ok(true));

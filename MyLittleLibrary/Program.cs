@@ -38,6 +38,7 @@ builder.Services.Scan(scan => scan
 builder.Services.AddScoped<IMangaService, MangaService>();
 builder.Services.AddScoped<ILightNovelService, LightNovelService>();
 builder.Services.AddScoped<IFilmService, FilmService>();
+builder.Services.AddScoped<IBaseObjectService, BaseObjectService>();
 
 var app = builder.Build();
 

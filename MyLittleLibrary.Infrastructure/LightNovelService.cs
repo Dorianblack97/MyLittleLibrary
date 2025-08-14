@@ -1,4 +1,5 @@
 ﻿using MyLittleLibrary.Domain;
+using MyLittleLibrary.Application;
 
 namespace MyLittleLibrary.Infrastructure;
 

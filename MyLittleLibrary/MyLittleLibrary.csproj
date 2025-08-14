@@ -8,7 +8,7 @@
 
 
     <ItemGroup>
-        <PackageReference Include="MudBlazor" Version="8.*"/>
+        <PackageReference Include="MudBlazor" Version="8.*" />
         <PackageReference Include="Scrutor" Version="6.0.1" />
     </ItemGroup>
 
@@ -21,5 +21,6 @@
     <ItemGroup>
       <ProjectReference Include="..\MyLittleLibrary.Domain\MyLittleLibrary.Domain.csproj" />
       <ProjectReference Include="..\MyLittleLibrary.Infrastructure\MyLittleLibrary.Infrastructure.csproj" />
+      <ProjectReference Include="..\MyLittleLibrary.Application\MyLittleLibrary.Application.csproj" />
     </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@ using MyLittleLibrary.Components;
 using MyLittleLibrary.Infrastructure;
 using MyLittleLibrary.Infrastructure.Options;
 using Microsoft.Extensions.FileProviders;
+using MyLittleLibrary.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 

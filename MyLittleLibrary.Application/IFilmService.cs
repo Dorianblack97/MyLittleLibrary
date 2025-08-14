@@ -1,6 +1,6 @@
 ﻿using MyLittleLibrary.Domain;
 
-namespace MyLittleLibrary.Infrastructure;
+namespace MyLittleLibrary.Application;
 
 public interface IFilmService
 {

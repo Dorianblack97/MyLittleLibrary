@@ -3,7 +3,7 @@
 1. [x] Introduce an application service layer (e.g., IMangaService/ILightNovelService/IFilmService/IBaseObjectService) so UI depends on abstractions instead of Infrastructure repositories; register services via DI. 
 2. [x] Define repository/service interfaces in a separate abstractions namespace/project (e.g., MyLittleLibrary.Application or .Domain.Abstractions) to decouple Infrastructure from UI.
 3. [x] Refactor UI components to inject service interfaces (e.g., IMangaService/IBaseObjectService) rather than concrete repositories (MangaRepository/BaseObjectRepository).
-4. [ ] Move heavy code-behind logic from .razor files into .razor.cs partial classes to improve separation of concerns and testability. 
+4. [x] Move heavy code-behind logic from .razor files into .razor.cs partial classes to improve separation of concerns and testability.
 5. [ ] Introduce a query/command separation (lightweight CQRS) for reads vs writes to clarify data flows and reduce side effects. 
 6. [ ] Add cancellation token support to all async repository/service methods and propagate from UI calls. 
 7. [ ] Add pagination/slicing parameters (skip/take) to list-returning methods (e.g., GetAll, GetAllByTitle) to avoid loading large collections in memory. 

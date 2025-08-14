@@ -2,7 +2,7 @@
 @using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject MangaRepository MangaRepository
+@inject IMangaService MangaService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IWebHostEnvironment Environment
@@ -124,7 +124,7 @@
     private async Task LoadMangas()
     {
         isLoading = true;
-        allMangas = await MangaRepository.GetAllAsync();
+        allMangas = await MangaService.GetAllAsync();
         isLoading = false;
     }
 
@@ -134,11 +134,11 @@
         
         if (string.IsNullOrWhiteSpace(searchQuery))
         {
-            allMangas = await MangaRepository.GetAllAsync();
+            allMangas = await MangaService.GetAllAsync();
         }
         else
         {
-            allMangas = await MangaRepository.SearchByTitleAsync(searchQuery);
+            allMangas = await MangaService.SearchByTitleAsync(searchQuery);
         }
         
         isLoading = false;
@@ -203,7 +203,7 @@
     {
         try
         {
-            var success = await MangaRepository.DeleteAsync(id);
+            var success = await MangaService.DeleteAsync(id);
             var successImage = DeleteImageFile(imagePath);
             if (success)
             {
@@ -230,7 +230,7 @@
             
             foreach (var manga in mangasToDelete)
             {
-                var success = await MangaRepository.DeleteAsync(manga.Id);
+                var success = await MangaService.DeleteAsync(manga.Id);
                 var successImage = DeleteImageFile(manga.ImagePath);
                 if (success) deleteCount++;
             }
@@ -259,7 +259,7 @@
             
             foreach (var manga in allMangas)
             {
-                var success = await MangaRepository.DeleteAsync(manga.Id);
+                var success = await MangaService.DeleteAsync(manga.Id);
                 var successImage = DeleteImageFile(manga.ImagePath);
                 if (success) deleteCount++;
             }

@@ -2,7 +2,7 @@
 @using MyLittleLibrary.Infrastructure
 @using System.IO
 @using Microsoft.AspNetCore.Hosting
-@inject LightNovelRepository LightNovelRepository
+@inject ILightNovelService LightNovelService
 @inject IWebHostEnvironment Environment
 
 @inherits Shared.BookUploadDialog
@@ -200,7 +200,7 @@
             originalId
         );
 
-        await LightNovelRepository.UpdateAsync(originalId, lightNovelRecord);
+        await LightNovelService.UpdateAsync(originalId, lightNovelRecord);
     }
     
     protected override async Task CreateSingle()
@@ -228,7 +228,7 @@
             publishDate
         );
         
-        await LightNovelRepository.CreateAsync(newLightNovel);
+        await LightNovelService.CreateAsync(newLightNovel);
     }
     
     protected override async Task CreateMultiple()
@@ -289,7 +289,7 @@
                 publishDate
             );
             
-            await LightNovelRepository.CreateAsync(newLightNovel);
+            await LightNovelService.CreateAsync(newLightNovel);
         }
     }
 }

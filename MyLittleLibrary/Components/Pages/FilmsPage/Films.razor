@@ -2,15 +2,15 @@
 @using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject FilmRepository FilmRepository
+@inject IFilmService FilmService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
 
 <PageTitle>Film</PageTitle>
-<div style="position: sticky; top: 64px; z-index: 1; padding-top: 8px;">
-    <MudPaper Elevation="3" Class="pa-2 pa-sm-4 mb-4">
+    <div style="position: sticky; top: 64px; z-index: 1;">
+    <MudPaper Elevation="3" Class="pa-2 pa-sm-4">
         <div class="d-flex flex-column flex-sm-row justify-space-between align-center gap-2">
             <MudText Typo="Typo.h4" Class="mb-2 mb-sm-0 mr-sm-4">Film Collection</MudText>
             <MudTextField
@@ -146,7 +146,7 @@
         try
         {
             // Get all films from the repository
-            var allFilms = await FilmRepository.GetAllAsync();
+            var allFilms = await FilmService.GetAllAsync();
 
             // Convert to FilmModel for display
             films = allFilms

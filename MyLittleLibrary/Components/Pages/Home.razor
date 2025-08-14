@@ -1,9 +1,9 @@
 ﻿@page "/"
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject MangaRepository MangaRepository
-@inject LightNovelRepository LightNovelRepository
-@inject FilmRepository FilmRepository
+@inject IMangaService MangaService
+@inject ILightNovelService LightNovelService
+@inject IFilmService FilmService
 @inject BaseObjectRepository BaseObjectRepository
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
@@ -273,9 +273,9 @@
 
     private async Task LoadStatistics()
     {
-        var filmList = await FilmRepository.GetAllAsync();
-        var mangaList = await MangaRepository.GetAllAsync();
-        var lightNovelList = await LightNovelRepository.GetAllAsync();
+        var filmList = await FilmService.GetAllAsync();
+        var mangaList = await MangaService.GetAllAsync();
+        var lightNovelList = await LightNovelService.GetAllAsync();
 
         filmCount = filmList.Count;
 

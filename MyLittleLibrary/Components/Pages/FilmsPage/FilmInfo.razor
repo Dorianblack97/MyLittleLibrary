@@ -2,7 +2,7 @@
 @using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject FilmRepository FilmRepository
+@inject IFilmService FilmService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -133,7 +133,7 @@
         isLoading = true;
         try
         {
-            film = await FilmRepository.GetByTitleAsync(Title!);
+            film = await FilmService.GetByTitleAsync(Title!);
         }
         catch (Exception)
         {
@@ -152,7 +152,7 @@
         try
         {
             var updatedFilm = film with { IsWatched = !film.IsWatched };
-            await FilmRepository.UpdateAsync(film.Id, updatedFilm);
+            await FilmService.UpdateAsync(film.Id, updatedFilm);
             film = updatedFilm;
             
             Snackbar.Add($"Film marked as {(film.IsWatched ? "watched" : "unwatched")}", Severity.Success);
@@ -199,7 +199,7 @@
         {
             try
             {
-                await FilmRepository.DeleteAsync(film!.Id);
+                await FilmService.DeleteAsync(film!.Id);
                 Snackbar.Add("Film deleted successfully!", Severity.Success);
                 NavigationManager.NavigateTo("/film");
             }

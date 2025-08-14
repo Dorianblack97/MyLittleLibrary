@@ -1,7 +1,7 @@
 ﻿@page "/manga/mangainfo"
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject MangaRepository MangaRepository
+@inject IMangaService MangaService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -124,7 +124,7 @@
         try
         {
             // Fetch all manga volumes for this series from the repository
-            var allMangas = await MangaRepository.GetAllByTitleAsync(Title);
+            var allMangas = await MangaService.GetAllByTitleAsync(Title);
 
             // Filter mangas by title (case-insensitive)
             mangaVolumes = allMangas
@@ -146,7 +146,7 @@
         try
         {
             var updatedManga = manga with { IsRead = !manga.IsRead };
-            await MangaRepository.UpdateAsync(updatedManga.Id, updatedManga);
+            await MangaService.UpdateAsync(updatedManga.Id, updatedManga);
             await LoadMangaVolumes();
             Snackbar.Add($"Manga marked as {(!manga.IsRead ? "read" : "unread")}", Severity.Success);
         }

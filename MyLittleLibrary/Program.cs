@@ -33,6 +33,11 @@ builder.Services.Scan(scan => scan
     .AsSelf()
     .WithSingletonLifetime());
 
+// Application services
+builder.Services.AddScoped<IMangaService, MangaService>();
+builder.Services.AddScoped<ILightNovelService, LightNovelService>();
+builder.Services.AddScoped<IFilmService, FilmService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

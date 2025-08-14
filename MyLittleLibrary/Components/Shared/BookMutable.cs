@@ -24,7 +24,7 @@ namespace MyLittleLibrary.Components.Shared
 
         public string TitleSlug
         {
-            get => _titleSlug;
+            get => GenerateSlug(_title);
             private set => _titleSlug = value;
         }
         

@@ -2,7 +2,7 @@
 @using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject MangaRepository MangaRepository
+@inject IMangaService MangaService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -120,6 +120,10 @@
                                                  Icon="@(series.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
                                             @(series.IsDigital ? "Digital" : "Physical")
                                         </MudChip>
+                                        <MudChip T="string" Color="Color.Default"
+                                                 Size="Size.Small">
+                                            @(series.IsCompleted ? "Completed" : "Ongoing")
+                                        </MudChip>
                                     </MudText>
                                 </MudItem>
                             </MudGrid>
@@ -149,7 +153,7 @@
         try
         {
             // Get all manga from the repository
-            var allManga = await MangaRepository.GetAllAsync();
+            var allManga = await MangaService.GetAllAsync();
 
             // Group manga by title to create series
             mangaSeries = allManga
@@ -245,6 +249,7 @@
         public string Author { get; set; } = string.Empty;
         public string Illustrator { get; set; } = string.Empty;
         public bool IsDigital { get; set; }
+        public bool IsCompleted { get; set; } = false;
         public int VolumeCount { get; set; }
         public string? CoverImage { get; set; }
         public int CompletionPercentage { get; set; }

@@ -2,7 +2,7 @@
 @using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject LightNovelRepository LightNovelRepository
+@inject ILightNovelService LightNovelService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -125,6 +125,10 @@
                                                  Icon="@(series.IsDigital ? Icons.Material.Filled.PhoneAndroid : Icons.Material.Filled.Book)">
                                             @(series.IsDigital ? "Digital" : "Physical")
                                         </MudChip>
+                                        <MudChip T="string" Color="Color.Default"
+                                                 Size="Size.Small">
+                                            @(series.IsCompleted ? "Completed" : "Ongoing")
+                                        </MudChip>
                                     </MudText>
                                 </MudItem>
                             </MudGrid>
@@ -154,7 +158,7 @@
         try
         {
             // Get all light novels from the repository
-            var allLightNovels = await LightNovelRepository.GetAllAsync();
+            var allLightNovels = await LightNovelService.GetAllAsync();
 
             // Group light novels by title to create series
             lightNovelSeries = allLightNovels
@@ -250,6 +254,7 @@
         public string Author { get; set; } = string.Empty;
         public string Illustrator { get; set; } = string.Empty;
         public bool IsDigital { get; set; }
+        public bool IsCompleted { get; set; } = false;
         public int VolumeCount { get; set; }
         public string? CoverImage { get; set; }
         public int CompletionPercentage { get; set; }

@@ -2,7 +2,7 @@
 @using MyLittleLibrary.Infrastructure
 @using System.IO
 @using Microsoft.AspNetCore.Hosting
-@inject MangaRepository MangaRepository
+@inject IMangaService MangaService
 @inject IWebHostEnvironment Environment
 
 @inherits Shared.BookUploadDialog
@@ -200,7 +200,7 @@
             originalId
         );
 
-        await MangaRepository.UpdateAsync(originalId, mangaRecord);
+        await MangaService.UpdateAsync(originalId, mangaRecord);
     }
     
     protected override async Task CreateSingle()
@@ -228,7 +228,7 @@
             publishDate
         );
         
-        await MangaRepository.CreateAsync(newManga);
+        await MangaService.CreateAsync(newManga);
     }
     
     protected override async Task CreateMultiple()
@@ -289,7 +289,7 @@
                 publishDate
             );
             
-            await MangaRepository.CreateAsync(newManga);
+            await MangaService.CreateAsync(newManga);
         }
     }
 }

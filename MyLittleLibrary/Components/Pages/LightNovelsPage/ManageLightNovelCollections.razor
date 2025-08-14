@@ -3,7 +3,7 @@
 @using MyLittleLibrary.Components.Shared
 @using MyLittleLibrary.Domain
 @using MyLittleLibrary.Infrastructure
-@inject LightNovelRepository LightNovelRepository
+@inject ILightNovelService LightNovelService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IWebHostEnvironment Environment
@@ -128,7 +128,7 @@
     private async Task LoadLightNovels()
     {
         isLoading = true;
-        allLightNovels = await LightNovelRepository.GetAllAsync();
+        allLightNovels = await LightNovelService.GetAllAsync();
         isLoading = false;
     }
 
@@ -138,11 +138,11 @@
 
         if (string.IsNullOrWhiteSpace(searchQuery))
         {
-            allLightNovels = await LightNovelRepository.GetAllAsync();
+            allLightNovels = await LightNovelService.GetAllAsync();
         }
         else
         {
-            allLightNovels = await LightNovelRepository.SearchByTitleAsync(searchQuery);
+            allLightNovels = await LightNovelService.SearchByTitleAsync(searchQuery);
         }
 
         isLoading = false;
@@ -207,7 +207,7 @@
     {
         try
         {
-            var success = await LightNovelRepository.DeleteAsync(id);
+            var success = await LightNovelService.DeleteAsync(id);
             var successImage = DeleteImageFile(imagePath);
             if (success)
             {
@@ -234,7 +234,7 @@
 
             foreach (var lightNovel in lightNovelsToDelete)
             {
-                var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
+                var success = await LightNovelService.DeleteAsync(lightNovel.Id);
                 var successImage = DeleteImageFile(lightNovel.ImagePath);
                 if (success) deleteCount++;
             }
@@ -263,7 +263,7 @@
 
             foreach (var lightNovel in allLightNovels)
             {
-                var success = await LightNovelRepository.DeleteAsync(lightNovel.Id);
+                var success = await LightNovelService.DeleteAsync(lightNovel.Id);
                 var successImage = DeleteImageFile(lightNovel.ImagePath);
                 if (success) deleteCount++;
             }

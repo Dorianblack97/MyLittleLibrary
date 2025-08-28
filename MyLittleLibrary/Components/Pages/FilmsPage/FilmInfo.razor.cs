@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
 using MyLittleLibrary.Components.Shared;
 using MudBlazor;
+using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
@@ -12,7 +13,8 @@ public partial class FilmInfo : ComponentBase
     [SupplyParameterFromQuery]
     public string? Title { get; set; }
 
-    [Inject] private IFilmService FilmService { get; set; } = null!;
+    [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
+    [Inject] private IFilmCommandService FilmCommandService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
@@ -37,7 +39,7 @@ public partial class FilmInfo : ComponentBase
         isLoading = true;
         try
         {
-            film = await FilmService.GetByTitleAsync(Title!);
+            film = await FilmQueryService.GetByTitleAsync(Title!);
         }
         catch (Exception)
         {
@@ -56,7 +58,7 @@ public partial class FilmInfo : ComponentBase
         try
         {
             var updatedFilm = film with { IsWatched = !film.IsWatched };
-            await FilmService.UpdateAsync(film.Id, updatedFilm);
+            await FilmCommandService.UpdateAsync(film.Id, updatedFilm);
             film = updatedFilm;
             
             Snackbar.Add($"Film marked as {(film.IsWatched ? "watched" : "unwatched")}", Severity.Success);
@@ -103,7 +105,7 @@ public partial class FilmInfo : ComponentBase
         {
             try
             {
-                await FilmService.DeleteAsync(film!.Id);
+                await FilmCommandService.DeleteAsync(film!.Id);
                 Snackbar.Add("Film deleted successfully!", Severity.Success);
                 NavigationManager.NavigateTo("/film");
             }

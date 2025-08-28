@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
-using MyLittleLibrary.Application;
 using MyLittleLibrary.Domain;
 using MudBlazor;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
 public partial class Films : ComponentBase
 {
-    [Inject] private IFilmService FilmService { get; set; } = null!;
+    [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
@@ -29,7 +29,7 @@ public partial class Films : ComponentBase
         try
         {
             // Get all films from the repository
-            var allFilms = await FilmService.GetAllAsync();
+            var allFilms = await FilmQueryService.GetAllAsync();
 
             // Convert to FilmModel for display
             films = allFilms
@@ -89,7 +89,7 @@ public partial class Films : ComponentBase
     private void NavigateToFilmDetails(string title)
     {
         // Navigate to the FilmInfo page with the title as a query parameter
-        NavigationManager.NavigateTo($"/films/filminfo?title={Uri.EscapeDataString(title)}");
+        NavigationManager.NavigateTo($"/film/filminfo?title={Uri.EscapeDataString(title)}");
     }
 
     private async Task OpenAddFilmDialog()

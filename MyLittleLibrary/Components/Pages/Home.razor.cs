@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
 using MudBlazor;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages;
 
 public partial class Home : ComponentBase
 {
-    [Inject] private IMangaService MangaService { get; set; } = null!;
-    [Inject] private ILightNovelService LightNovelService { get; set; } = null!;
-    [Inject] private IFilmService FilmService { get; set; } = null!;
-    [Inject] private IBaseObjectService BaseObjectService { get; set; } = null!;
+    [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
+    [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
+    [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
+    [Inject] private IBaseObjectQueryService BaseObjectQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
@@ -31,9 +31,9 @@ public partial class Home : ComponentBase
 
     private async Task LoadStatistics()
     {
-        var filmList = await FilmService.GetAllAsync();
-        var mangaList = await MangaService.GetAllAsync();
-        var lightNovelList = await LightNovelService.GetAllAsync();
+        var filmList = await FilmQueryService.GetAllAsync();
+        var mangaList = await MangaQueryService.GetAllAsync();
+        var lightNovelList = await LightNovelQueryService.GetAllAsync();
 
         filmCount = filmList.Count;
 
@@ -50,7 +50,7 @@ public partial class Home : ComponentBase
 
     private async Task LoadRecentItems()
     {
-        recentItems = await BaseObjectService.GetMostRecentAsync();
+        recentItems = await BaseObjectQueryService.GetMostRecentAsync();
     }
 
     private async Task PerformSearch()

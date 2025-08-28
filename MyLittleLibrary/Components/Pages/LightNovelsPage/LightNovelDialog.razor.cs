@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
+using MyLittleLibrary.Application.Commands;
 using MyLittleLibrary.Components.Shared;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
@@ -9,8 +9,7 @@ namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 public partial class LightNovelDialog : BookUploadDialog
 {
     [Parameter] public Book.LightNovel? LightNovelToEdit { get; set; }
-
-    [Inject] private ILightNovelService LightNovelService { get; set; } = null!;
+    [Inject] private ILightNovelCommandService LightNovelCommandService { get; set; } = null!;
 
     private LightNovelMutable lightNovel = new();
 
@@ -67,7 +66,7 @@ public partial class LightNovelDialog : BookUploadDialog
             originalId
         );
 
-        await LightNovelService.UpdateAsync(originalId, lightNovelRecord);
+        await LightNovelCommandService.UpdateAsync(originalId, lightNovelRecord);
     }
     
     protected override async Task CreateSingle()
@@ -95,7 +94,7 @@ public partial class LightNovelDialog : BookUploadDialog
             publishDate
         );
         
-        await LightNovelService.CreateAsync(newLightNovel);
+        await LightNovelCommandService.CreateAsync(newLightNovel);
     }
     
     protected override async Task CreateMultiple()
@@ -156,7 +155,7 @@ public partial class LightNovelDialog : BookUploadDialog
                 publishDate
             );
             
-            await LightNovelService.CreateAsync(newLightNovel);
+            await LightNovelCommandService.CreateAsync(newLightNovel);
         }
     }
 }

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
 using MudBlazor;
+using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
 
@@ -9,7 +10,8 @@ public partial class MangaInfo : ComponentBase
 {
     [Parameter] [SupplyParameterFromQuery] public required string Title { get; set; }
 
-    [Inject] private IMangaService MangaService { get; set; } = null!;
+    [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
+    [Inject] private IMangaCommandService MangaCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
@@ -35,7 +37,7 @@ public partial class MangaInfo : ComponentBase
         try
         {
             // Fetch all manga volumes for this series from the repository
-            var allMangas = await MangaService.GetAllByTitleAsync(Title);
+            var allMangas = await MangaQueryService.GetAllByTitleAsync(Title);
 
             // Filter mangas by title (case-insensitive)
             mangaVolumes = allMangas
@@ -57,7 +59,7 @@ public partial class MangaInfo : ComponentBase
         try
         {
             var updatedManga = manga with { IsRead = !manga.IsRead };
-            await MangaService.UpdateAsync(updatedManga.Id, updatedManga);
+            await MangaCommandService.UpdateAsync(updatedManga.Id, updatedManga);
             await LoadMangaVolumes();
             Snackbar.Add($"Manga marked as {(!manga.IsRead ? "read" : "unread")}", Severity.Success);
         }

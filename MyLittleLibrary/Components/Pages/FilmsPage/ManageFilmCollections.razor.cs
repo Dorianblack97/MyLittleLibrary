@@ -1,15 +1,17 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
 using MyLittleLibrary.Components.Shared;
 using MudBlazor;
+using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
 public partial class ManageFilmCollections : ComponentBase
 {
-    [Inject] private IFilmService FilmService { get; set; } = null!;
+    [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
+    [Inject] private IFilmCommandService FilmCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
@@ -31,7 +33,7 @@ public partial class ManageFilmCollections : ComponentBase
         isLoading = true;
         try
         {
-            allFilms = await FilmService.GetAllAsync();
+            allFilms = await FilmQueryService.GetAllAsync();
             FilterFilms();
         }
         catch (Exception ex)
@@ -85,7 +87,7 @@ public partial class ManageFilmCollections : ComponentBase
         try
         {
             var updatedFilm = film with { IsWatched = !film.IsWatched };
-            var success = await FilmService.UpdateAsync(film.Id, updatedFilm);
+            var success = await FilmCommandService.UpdateAsync(film.Id, updatedFilm);
             
             if (success)
             {
@@ -182,7 +184,7 @@ public partial class ManageFilmCollections : ComponentBase
     {
         try
         {
-            var success = await FilmService.DeleteAsync(id);
+            var success = await FilmCommandService.DeleteAsync(id);
             if (success)
             {
                 Snackbar.Add("Film deleted successfully", Severity.Success);
@@ -207,7 +209,7 @@ public partial class ManageFilmCollections : ComponentBase
             
             foreach (var film in allFilms)
             {
-                var success = await FilmService.DeleteAsync(film.Id);
+                var success = await FilmCommandService.DeleteAsync(film.Id);
                 if (success) deleteCount++;
             }
 

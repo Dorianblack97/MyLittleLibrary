@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
+using MyLittleLibrary.Application.Commands;
 using MyLittleLibrary.Components.Shared;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
@@ -10,7 +10,7 @@ public partial class MangaDialog : BookUploadDialog
 {
     [Parameter] public Book.Manga? MangaToEdit { get; set; }
 
-    [Inject] private IMangaService MangaService { get; set; } = null!;
+    [Inject] private IMangaCommandService MangaCommandService { get; set; } = null!;
 
     private MangaMutable manga = new();
 
@@ -67,7 +67,7 @@ public partial class MangaDialog : BookUploadDialog
             originalId
         );
 
-        await MangaService.UpdateAsync(originalId, mangaRecord);
+        await MangaCommandService.UpdateAsync(originalId, mangaRecord);
     }
     
     protected override async Task CreateSingle()
@@ -95,7 +95,7 @@ public partial class MangaDialog : BookUploadDialog
             publishDate
         );
         
-        await MangaService.CreateAsync(newManga);
+        await MangaCommandService.CreateAsync(newManga);
     }
     
     protected override async Task CreateMultiple()
@@ -156,7 +156,7 @@ public partial class MangaDialog : BookUploadDialog
                 publishDate
             );
             
-            await MangaService.CreateAsync(newManga);
+            await MangaCommandService.CreateAsync(newManga);
         }
     }
 }

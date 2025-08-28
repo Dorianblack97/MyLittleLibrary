@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
 using MudBlazor;
+using MyLittleLibrary.Application.Commands;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
@@ -12,7 +12,7 @@ public partial class FilmDialog : ComponentBase
     
     [Parameter] public Video.Film? FilmToEdit { get; set; }
 
-    [Inject] private IFilmService FilmService { get; set; } = null!;
+    [Inject] private IFilmCommandService FilmCommandService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
 
@@ -126,7 +126,7 @@ public partial class FilmDialog : ComponentBase
                     releaseDate: film.ReleaseDate
                 );
 
-                await FilmService.CreateAsync(newFilm);
+                await FilmCommandService.CreateAsync(newFilm);
             }
             else
             {
@@ -142,7 +142,7 @@ public partial class FilmDialog : ComponentBase
                     id: FilmToEdit.Id
                 );
 
-                await FilmService.UpdateAsync(FilmToEdit.Id, updatedFilm);
+                await FilmCommandService.UpdateAsync(FilmToEdit.Id, updatedFilm);
             }
         
             MudDialog.Close(DialogResult.Ok(true));

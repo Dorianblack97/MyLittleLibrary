@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
-using MyLittleLibrary.Application;
 using MudBlazor;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
 
 public partial class Mangas : ComponentBase
 {
-    [Inject] private IMangaService MangaService { get; set; } = null!;
+    [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
@@ -28,7 +28,7 @@ public partial class Mangas : ComponentBase
         try
         {
             // Get all manga from the repository
-            var allManga = await MangaService.GetAllAsync();
+            var allManga = await MangaQueryService.GetAllAsync();
 
             // Group manga by title to create series
             mangaSeries = allManga

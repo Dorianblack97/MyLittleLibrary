@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MyLittleLibrary.Domain;
-using MyLittleLibrary.Application;
 using MudBlazor;
+using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
@@ -11,7 +12,8 @@ public partial class LightNovelInfo : ComponentBase
     [SupplyParameterFromQuery]
     public required string Title { get; set; }
 
-    [Inject] private ILightNovelService LightNovelService { get; set; } = null!;
+    [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
+    [Inject] private ILightNovelCommandService LightNovelCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
@@ -37,7 +39,7 @@ public partial class LightNovelInfo : ComponentBase
         try
         {
             // Fetch all light novel volumes for this series from the repository
-            var allLightNovels = await LightNovelService.GetAllByTitleAsync(Title);
+            var allLightNovels = await LightNovelQueryService.GetAllByTitleAsync(Title);
 
             // Filter light novels by title (case-insensitive)
             lightNovelVolumes = allLightNovels
@@ -59,7 +61,7 @@ public partial class LightNovelInfo : ComponentBase
         try
         {
             var updatedLightNovel = lightNovel with { IsRead = !lightNovel.IsRead };
-            await LightNovelService.UpdateAsync(updatedLightNovel.Id, updatedLightNovel);
+            await LightNovelCommandService.UpdateAsync(updatedLightNovel.Id, updatedLightNovel);
             await LoadLightNovelVolumes();
             Snackbar.Add($"Light novel marked as {(!lightNovel.IsRead ? "read" : "unread")}", Severity.Success);
         }

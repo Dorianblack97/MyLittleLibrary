@@ -4,6 +4,10 @@ using MyLittleLibrary.Infrastructure;
 using MyLittleLibrary.Infrastructure.Options;
 using Microsoft.Extensions.FileProviders;
 using MyLittleLibrary.Application;
+using MyLittleLibrary.Application.Queries;
+using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Infrastructure.Queries;
+using MyLittleLibrary.Infrastructure.Commands;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,11 +38,22 @@ builder.Services.Scan(scan => scan
     .AsSelf()
     .WithSingletonLifetime());
 
-// Application services
+// Application services (CQRS)
 builder.Services.AddScoped<IMangaService, MangaService>();
 builder.Services.AddScoped<ILightNovelService, LightNovelService>();
 builder.Services.AddScoped<IFilmService, FilmService>();
 builder.Services.AddScoped<IBaseObjectService, BaseObjectService>();
+
+// Query services
+builder.Services.AddScoped<IMangaQueryService, MangaQueryService>();
+builder.Services.AddScoped<ILightNovelQueryService, LightNovelQueryService>();
+builder.Services.AddScoped<IFilmQueryService, FilmQueryService>();
+builder.Services.AddScoped<IBaseObjectQueryService, BaseObjectQueryService>();
+
+// Command services
+builder.Services.AddScoped<IMangaCommandService, MangaCommandService>();
+builder.Services.AddScoped<ILightNovelCommandService, LightNovelCommandService>();
+builder.Services.AddScoped<IFilmCommandService, FilmCommandService>();
 
 var app = builder.Build();
 

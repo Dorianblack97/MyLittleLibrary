@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
-using MyLittleLibrary.Application;
 using MudBlazor;
+using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
 public partial class LightNovels : ComponentBase
 {
-    [Inject] private ILightNovelService LightNovelService { get; set; } = null!;
+    [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
@@ -28,7 +28,7 @@ public partial class LightNovels : ComponentBase
         try
         {
             // Get all light novels from the repository
-            var allLightNovels = await LightNovelService.GetAllAsync();
+            var allLightNovels = await LightNovelQueryService.GetAllAsync();
 
             // Group light novels by title to create series
             lightNovelSeries = allLightNovels

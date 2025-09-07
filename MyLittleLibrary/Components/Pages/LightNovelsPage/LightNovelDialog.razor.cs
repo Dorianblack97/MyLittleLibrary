@@ -6,11 +6,12 @@ using MyLittleLibrary.Components.Shared;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
-public partial class LightNovelDialog : BookUploadDialog
+public partial class LightNovelDialog : BookUploadDialog, IDisposable
 {
     [Parameter] public Book.LightNovel? LightNovelToEdit { get; set; }
     [Inject] private ILightNovelCommandService LightNovelCommandService { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private LightNovelMutable lightNovel = new();
 
     protected override void InitializeData()
@@ -66,7 +67,7 @@ public partial class LightNovelDialog : BookUploadDialog
             originalId
         );
 
-        await LightNovelCommandService.UpdateAsync(originalId, lightNovelRecord);
+        await LightNovelCommandService.UpdateAsync(originalId, lightNovelRecord, cancellationTokenSource.Token);
     }
     
     protected override async Task CreateSingle()
@@ -94,7 +95,7 @@ public partial class LightNovelDialog : BookUploadDialog
             publishDate
         );
         
-        await LightNovelCommandService.CreateAsync(newLightNovel);
+        await LightNovelCommandService.CreateAsync(newLightNovel, cancellationTokenSource.Token);
     }
     
     protected override async Task CreateMultiple()
@@ -155,7 +156,13 @@ public partial class LightNovelDialog : BookUploadDialog
                 publishDate
             );
             
-            await LightNovelCommandService.CreateAsync(newLightNovel);
+            await LightNovelCommandService.CreateAsync(newLightNovel, cancellationTokenSource.Token);
         }
+    }
+    
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

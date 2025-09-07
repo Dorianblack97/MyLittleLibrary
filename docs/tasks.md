@@ -5,7 +5,7 @@
 3. [x] Refactor UI components to inject service interfaces (e.g., IMangaService/IBaseObjectService) rather than concrete repositories (MangaRepository/BaseObjectRepository).
 4. [x] Move heavy code-behind logic from .razor files into .razor.cs partial classes to improve separation of concerns and testability.
 5. [x] Introduce a query/command separation (lightweight CQRS) for reads vs writes to clarify data flows and reduce side effects.
-6. [ ] Add cancellation token support to all async repository/service methods and propagate from UI calls. 
+6. [x] Add cancellation token support to all async repository/service methods and propagate from UI calls.
 7. [ ] Add pagination/slicing parameters (skip/take) to list-returning methods (e.g., GetAll, GetAllByTitle) to avoid loading large collections in memory. 
 8. [ ] Centralize error handling and user notifications (e.g., a NotificationService) instead of ad-hoc Snackbar.Add calls scattered in components. 
 9. [ ] Add structured logging using ILogger<T> in repositories and services; log at appropriate levels with contextual metadata (title, id, volume). 

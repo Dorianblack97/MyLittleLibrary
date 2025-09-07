@@ -12,19 +12,19 @@ public class LightNovelService : ILightNovelService
         _repository = repository;
     }
 
-    public Task<List<Book.LightNovel>> GetAllAsync() => _repository.GetAllAsync();
+    public Task<List<Book.LightNovel>> GetAllAsync(CancellationToken cancellationToken = default) => _repository.GetAllAsync(cancellationToken);
 
-    public Task<List<Book.LightNovel>> GetAllByTitleAsync(string title) => _repository.GetAllByTitleAsync(title);
+    public Task<List<Book.LightNovel>> GetAllByTitleAsync(string title, CancellationToken cancellationToken = default) => _repository.GetAllByTitleAsync(title, cancellationToken);
 
-    public Task<Book.LightNovel> GetByIdAsync(string id) => _repository.GetByIdAsync(id);
+    public Task<Book.LightNovel> GetByIdAsync(string id, CancellationToken cancellationToken = default) => _repository.GetByIdAsync(id, cancellationToken);
 
-    public Task<Book.LightNovel> GetByTitleAsync(string title) => _repository.GetByTitleAsync(title);
+    public Task<Book.LightNovel> GetByTitleAsync(string title, CancellationToken cancellationToken = default) => _repository.GetByTitleAsync(title, cancellationToken);
 
-    public Task<Book.LightNovel> CreateAsync(Book.LightNovel lightNovel) => _repository.CreateAsync(lightNovel);
+    public Task<Book.LightNovel> CreateAsync(Book.LightNovel lightNovel, CancellationToken cancellationToken = default) => _repository.CreateAsync(lightNovel, cancellationToken);
 
-    public Task<bool> UpdateAsync(string id, Book.LightNovel updatedLightNovel) => _repository.UpdateAsync(id, updatedLightNovel);
+    public Task<bool> UpdateAsync(string id, Book.LightNovel updatedLightNovel, CancellationToken cancellationToken = default) => _repository.UpdateAsync(id, updatedLightNovel, cancellationToken);
 
-    public Task<bool> DeleteAsync(string id) => _repository.DeleteAsync(id);
+    public Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default) => _repository.DeleteAsync(id, cancellationToken);
 
-    public Task<List<Book.LightNovel>> SearchByTitleAsync(string titleQuery) => _repository.SearchByTitleAsync(titleQuery);
+    public Task<List<Book.LightNovel>> SearchByTitleAsync(string titleQuery, CancellationToken cancellationToken = default) => _repository.SearchByTitleAsync(titleQuery, cancellationToken);
 }

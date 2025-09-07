@@ -8,7 +8,7 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
 
-public partial class ManageMangaCollections : ComponentBase
+public partial class ManageMangaCollections : ComponentBase, IDisposable
 {
     [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
     [Inject] private IMangaCommandService MangaCommandService { get; set; } = null!;
@@ -16,6 +16,7 @@ public partial class ManageMangaCollections : ComponentBase
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private string searchQuery = "";
     private List<Book.Manga> allMangas = new();
     private bool isLoading = true;
@@ -31,7 +32,7 @@ public partial class ManageMangaCollections : ComponentBase
     private async Task LoadMangas()
     {
         isLoading = true;
-        allMangas = await MangaQueryService.GetAllAsync();
+        allMangas = await MangaQueryService.GetAllAsync(cancellationTokenSource.Token);
         isLoading = false;
     }
 
@@ -41,11 +42,11 @@ public partial class ManageMangaCollections : ComponentBase
         
         if (string.IsNullOrWhiteSpace(searchQuery))
         {
-            allMangas = await MangaQueryService.GetAllAsync();
+            allMangas = await MangaQueryService.GetAllAsync(cancellationTokenSource.Token);
         }
         else
         {
-            allMangas = await MangaQueryService.SearchByTitleAsync(searchQuery);
+            allMangas = await MangaQueryService.SearchByTitleAsync(searchQuery, cancellationTokenSource.Token);;
         }
         
         isLoading = false;
@@ -110,7 +111,7 @@ public partial class ManageMangaCollections : ComponentBase
     {
         try
         {
-            var success = await MangaCommandService.DeleteAsync(id);
+            var success = await MangaCommandService.DeleteAsync(id, cancellationTokenSource.Token);
             var successImage = DeleteImageFile(imagePath);
             if (success)
             {
@@ -137,7 +138,7 @@ public partial class ManageMangaCollections : ComponentBase
             
             foreach (var manga in mangasToDelete)
             {
-                var success = await MangaCommandService.DeleteAsync(manga.Id);
+                var success = await MangaCommandService.DeleteAsync(manga.Id, cancellationTokenSource.Token);
                 var successImage = DeleteImageFile(manga.ImagePath);
                 if (success) deleteCount++;
             }
@@ -166,7 +167,7 @@ public partial class ManageMangaCollections : ComponentBase
             
             foreach (var manga in allMangas)
             {
-                var success = await MangaCommandService.DeleteAsync(manga.Id);
+                var success = await MangaCommandService.DeleteAsync(manga.Id, cancellationTokenSource.Token);
                 var successImage = DeleteImageFile(manga.ImagePath);
                 if (success) deleteCount++;
             }
@@ -217,5 +218,11 @@ public partial class ManageMangaCollections : ComponentBase
         }
         
         return false;
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

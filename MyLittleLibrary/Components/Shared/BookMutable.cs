@@ -5,27 +5,27 @@ namespace MyLittleLibrary.Components.Shared
 {
     public abstract class BookMutable
     {
-        private string _title = string.Empty;
-        private string _titleSlug = string.Empty;
+        private string title = string.Empty;
+        private string titleSlug = string.Empty;
 
         public string Title
         {
-            get => _title;
+            get => title;
             set
             {
-                _title = value;
+                title = value;
                 // Only auto-generate slug if it hasn't been set manually
-                if (string.IsNullOrEmpty(_titleSlug))
+                if (string.IsNullOrEmpty(titleSlug))
                 {
-                    _titleSlug = GenerateSlug(value);
+                    titleSlug = GenerateSlug(value);
                 }
             }
         }
 
         public string TitleSlug
         {
-            get => GenerateSlug(_title);
-            private set => _titleSlug = value;
+            get => GenerateSlug(title);
+            private set => titleSlug = value;
         }
         
         public string Author { get; set; } = string.Empty;
@@ -36,13 +36,13 @@ namespace MyLittleLibrary.Components.Shared
         // For setting title without triggering slug generation (used for existing records)
         public void SetTitle(string title)
         {
-            _title = title;
+            this.title = title;
         }
 
         // For setting slug directly (used for existing records)
         public void SetTitleSlug(string slug)
         {
-            _titleSlug = slug;
+            titleSlug = slug;
         }
 
         // Helper method to generate slug from title

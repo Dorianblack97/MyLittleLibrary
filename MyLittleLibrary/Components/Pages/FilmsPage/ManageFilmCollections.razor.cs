@@ -8,7 +8,7 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
-public partial class ManageFilmCollections : ComponentBase
+public partial class ManageFilmCollections : ComponentBase, IDisposable
 {
     [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
     [Inject] private IFilmCommandService FilmCommandService { get; set; } = null!;
@@ -16,6 +16,7 @@ public partial class ManageFilmCollections : ComponentBase
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private string searchQuery = "";
     private VideoFormat? formatFilter = null;
     private List<Video.Film> allFilms = new();
@@ -33,7 +34,7 @@ public partial class ManageFilmCollections : ComponentBase
         isLoading = true;
         try
         {
-            allFilms = await FilmQueryService.GetAllAsync();
+            allFilms = await FilmQueryService.GetAllAsync(cancellationTokenSource.Token);
             FilterFilms();
         }
         catch (Exception ex)
@@ -87,7 +88,7 @@ public partial class ManageFilmCollections : ComponentBase
         try
         {
             var updatedFilm = film with { IsWatched = !film.IsWatched };
-            var success = await FilmCommandService.UpdateAsync(film.Id, updatedFilm);
+            var success = await FilmCommandService.UpdateAsync(film.Id, updatedFilm, cancellationTokenSource.Token);
             
             if (success)
             {
@@ -184,7 +185,7 @@ public partial class ManageFilmCollections : ComponentBase
     {
         try
         {
-            var success = await FilmCommandService.DeleteAsync(id);
+            var success = await FilmCommandService.DeleteAsync(id, cancellationTokenSource.Token);
             if (success)
             {
                 Snackbar.Add("Film deleted successfully", Severity.Success);
@@ -209,7 +210,7 @@ public partial class ManageFilmCollections : ComponentBase
             
             foreach (var film in allFilms)
             {
-                var success = await FilmCommandService.DeleteAsync(film.Id);
+                var success = await FilmCommandService.DeleteAsync(film.Id, cancellationTokenSource.Token);
                 if (success) deleteCount++;
             }
 
@@ -254,5 +255,11 @@ public partial class ManageFilmCollections : ComponentBase
         }
         
         await SearchFilms();
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

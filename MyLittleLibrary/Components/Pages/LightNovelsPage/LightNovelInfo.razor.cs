@@ -6,7 +6,7 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
-public partial class LightNovelInfo : ComponentBase
+public partial class LightNovelInfo : ComponentBase, IDisposable
 {
     [Parameter]
     [SupplyParameterFromQuery]
@@ -17,6 +17,7 @@ public partial class LightNovelInfo : ComponentBase
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private List<Book.LightNovel> lightNovelVolumes = new();
     private bool isLoading = true;
     private bool showImagePreview = false;
@@ -39,7 +40,7 @@ public partial class LightNovelInfo : ComponentBase
         try
         {
             // Fetch all light novel volumes for this series from the repository
-            var allLightNovels = await LightNovelQueryService.GetAllByTitleAsync(Title);
+            var allLightNovels = await LightNovelQueryService.GetAllByTitleAsync(Title, cancellationTokenSource.Token);
 
             // Filter light novels by title (case-insensitive)
             lightNovelVolumes = allLightNovels
@@ -61,7 +62,7 @@ public partial class LightNovelInfo : ComponentBase
         try
         {
             var updatedLightNovel = lightNovel with { IsRead = !lightNovel.IsRead };
-            await LightNovelCommandService.UpdateAsync(updatedLightNovel.Id, updatedLightNovel);
+            await LightNovelCommandService.UpdateAsync(updatedLightNovel.Id, updatedLightNovel, cancellationTokenSource.Token);
             await LoadLightNovelVolumes();
             Snackbar.Add($"Light novel marked as {(!lightNovel.IsRead ? "read" : "unread")}", Severity.Success);
         }
@@ -175,5 +176,11 @@ public partial class LightNovelInfo : ComponentBase
     private void CloseImagePreview()
     {
         showImagePreview = false;
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

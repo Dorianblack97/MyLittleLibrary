@@ -4,13 +4,14 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
-public partial class LightNovels : ComponentBase
+public partial class LightNovels : ComponentBase, IDisposable
 {
     [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private bool isLoading = true;
     private List<LightNovelSeries> lightNovelSeries = new();
     private List<LightNovelSeries> filteredLightNovelSeries = new();
@@ -28,7 +29,7 @@ public partial class LightNovels : ComponentBase
         try
         {
             // Get all light novels from the repository
-            var allLightNovels = await LightNovelQueryService.GetAllAsync();
+            var allLightNovels = await LightNovelQueryService.GetAllAsync(cancellationTokenSource.Token);
 
             // Group light novels by title to create series
             lightNovelSeries = allLightNovels
@@ -128,5 +129,11 @@ public partial class LightNovels : ComponentBase
         public int VolumeCount { get; set; }
         public string? CoverImage { get; set; }
         public int CompletionPercentage { get; set; }
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

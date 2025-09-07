@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
+<MudThemeProvider Theme="@theme" IsDarkMode="isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
@@ -13,7 +13,7 @@
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End"/>
     </MudAppBar>
-    <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+    <MudDrawer id="nav-drawer" @bind-Open="drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu/>
     </MudDrawer>
     <MudMainContent Class="pt-16 pa-4">
@@ -29,33 +29,33 @@
 </div>
 
 @code {
-    private bool _drawerOpen = true;
-    private bool _isDarkMode = true;
-    private MudTheme? _theme = null;
+    private bool drawerOpen = true;
+    private bool isDarkMode = true;
+    private MudTheme? theme = null;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
 
-        _theme = new()
+        theme = new()
         {
-            PaletteLight = _lightGreenPalette,
-            PaletteDark = _darkGreenPalette,
+            PaletteLight = lightGreenPalette,
+            PaletteDark = darkGreenPalette,
             LayoutProperties = new LayoutProperties()
         };
     }
 
     private void DrawerToggle()
     {
-        _drawerOpen = !_drawerOpen;
+        drawerOpen = !drawerOpen;
     }
 
     private void DarkModeToggle()
     {
-        _isDarkMode = !_isDarkMode;
+        isDarkMode = !isDarkMode;
     }
 
-    private readonly PaletteLight _lightPalette = new()
+    private readonly PaletteLight lightPalette = new()
     {
         Black = "#110e2d",
         AppbarText = "#424242",
@@ -65,7 +65,7 @@
         GrayLighter = "#f9f9f9",
     };
 
-    private readonly PaletteLight _lightGreenPalette = new()
+    private readonly PaletteLight lightGreenPalette = new()
     {
         Primary = Colors.Teal.Default,
         Secondary = Colors.Teal.Lighten1,
@@ -79,7 +79,7 @@
 
     };
 
-    private readonly PaletteDark _darkPalette = new()
+    private readonly PaletteDark darkPalette = new()
     {
         Primary = "#7e6fff",
         Surface = "#1e1e2d",
@@ -108,7 +108,7 @@
         OverlayLight = "#1e1e2d80",
     };
 
-    private readonly PaletteDark _darkGreenPalette = new()
+    private readonly PaletteDark darkGreenPalette = new()
     {
         Primary = Colors.Teal.Lighten1,
         Secondary = Colors.Teal.Lighten2,
@@ -122,7 +122,7 @@
     };
 
 
-    public string DarkLightModeButtonIcon => _isDarkMode switch
+    public string DarkLightModeButtonIcon => isDarkMode switch
     {
         true => Icons.Material.Rounded.AutoMode,
         false => Icons.Material.Outlined.DarkMode,

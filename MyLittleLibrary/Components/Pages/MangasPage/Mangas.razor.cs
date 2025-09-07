@@ -4,13 +4,14 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
 
-public partial class Mangas : ComponentBase
+public partial class Mangas : ComponentBase, IDisposable
 {
     [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private bool isLoading = true;
     private List<MangaSeries> mangaSeries = new();
     private List<MangaSeries> filteredMangaSeries = new();
@@ -28,7 +29,7 @@ public partial class Mangas : ComponentBase
         try
         {
             // Get all manga from the repository
-            var allManga = await MangaQueryService.GetAllAsync();
+            var allManga = await MangaQueryService.GetAllAsync(cancellationTokenSource.Token);
 
             // Group manga by title to create series
             mangaSeries = allManga
@@ -128,5 +129,11 @@ public partial class Mangas : ComponentBase
         public int VolumeCount { get; set; }
         public string? CoverImage { get; set; }
         public int CompletionPercentage { get; set; }
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

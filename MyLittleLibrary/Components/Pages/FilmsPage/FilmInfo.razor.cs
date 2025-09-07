@@ -7,7 +7,7 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
-public partial class FilmInfo : ComponentBase
+public partial class FilmInfo : ComponentBase, IDisposable
 {
     [Parameter]
     [SupplyParameterFromQuery]
@@ -19,6 +19,7 @@ public partial class FilmInfo : ComponentBase
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private Video.Film? film;
     private bool isLoading = true;
 
@@ -39,7 +40,7 @@ public partial class FilmInfo : ComponentBase
         isLoading = true;
         try
         {
-            film = await FilmQueryService.GetByTitleAsync(Title!);
+            film = await FilmQueryService.GetByTitleAsync(Title!, cancellationTokenSource.Token);
         }
         catch (Exception)
         {
@@ -58,7 +59,7 @@ public partial class FilmInfo : ComponentBase
         try
         {
             var updatedFilm = film with { IsWatched = !film.IsWatched };
-            await FilmCommandService.UpdateAsync(film.Id, updatedFilm);
+            await FilmCommandService.UpdateAsync(film.Id, updatedFilm, cancellationTokenSource.Token);
             film = updatedFilm;
             
             Snackbar.Add($"Film marked as {(film.IsWatched ? "watched" : "unwatched")}", Severity.Success);
@@ -105,7 +106,7 @@ public partial class FilmInfo : ComponentBase
         {
             try
             {
-                await FilmCommandService.DeleteAsync(film!.Id);
+                await FilmCommandService.DeleteAsync(film!.Id, cancellationTokenSource.Token);
                 Snackbar.Add("Film deleted successfully!", Severity.Success);
                 NavigationManager.NavigateTo("/film");
             }
@@ -126,5 +127,11 @@ public partial class FilmInfo : ComponentBase
             VideoFormat.Vhs => Icons.Material.Filled.Videocam,
             _ => Icons.Material.Filled.Movie
         };
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

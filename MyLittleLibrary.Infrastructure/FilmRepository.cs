@@ -20,34 +20,34 @@ public class FilmRepository
     }
 
     // Create
-    public async Task<Video.Film> CreateAsync(Video.Film film)
+    public async Task<Video.Film> CreateAsync(Video.Film film, CancellationToken cancellationToken = default)
     {
-        await _collection.InsertOneAsync(film);
+        await _collection.InsertOneAsync(film, cancellationToken: cancellationToken);
         return film;
     }
 
     // Read - Get all
-    public async Task<List<Video.Film>> GetAllAsync() 
-        => await _collection.Find(f => f.CollectionType == Collection.Film).ToListAsync();
+    public async Task<List<Video.Film>> GetAllAsync(CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => f.CollectionType == Collection.Film).ToListAsync(cancellationToken);
 
     // Read - Get all by title
-    public async Task<List<Video.Film>> GetAllByTitleAsync(string title) 
-        => await _collection.Find(f => f.Title == title && f.CollectionType == Collection.Film).ToListAsync();
+    public async Task<List<Video.Film>> GetAllByTitleAsync(string title, CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => f.Title == title && f.CollectionType == Collection.Film).ToListAsync(cancellationToken);
 
     // Read - Get by ID
-    public async Task<Video.Film> GetByIdAsync(string id) 
-        => await _collection.Find(f => f.Id == id).FirstOrDefaultAsync();
+    public async Task<Video.Film> GetByIdAsync(string id, CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => f.Id == id).FirstOrDefaultAsync(cancellationToken);
 
     // Read - Get by title
-    public async Task<Video.Film> GetByTitleAsync(string title) 
-        => await _collection.Find(f => f.Title == title && f.CollectionType == Collection.Film).FirstOrDefaultAsync();
+    public async Task<Video.Film> GetByTitleAsync(string title, CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => f.Title == title && f.CollectionType == Collection.Film).FirstOrDefaultAsync(cancellationToken);
 
     // Read - Get by director
-    public async Task<List<Video.Film>> GetByDirectorAsync(string director) 
-        => await _collection.Find(f => f.Director == director && f.CollectionType == Collection.Film).ToListAsync();
+    public async Task<List<Video.Film>> GetByDirectorAsync(string director, CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => f.Director == director && f.CollectionType == Collection.Film).ToListAsync(cancellationToken);
 
     // Update
-    public async Task<bool> UpdateAsync(string id, Video.Film updatedFilm)
+    public async Task<bool> UpdateAsync(string id, Video.Film updatedFilm, CancellationToken cancellationToken = default)
     {
         var update = Builders<Video.Film>.Update
             .Set(f => f.Title, updatedFilm.Title)
@@ -60,47 +60,48 @@ public class FilmRepository
 
         var result = await _collection.UpdateOneAsync(
             f => f.Id == id,
-            update);
+            update,
+            cancellationToken: cancellationToken);
 
         return result.IsAcknowledged && result.ModifiedCount > 0;
     }
 
     // Delete
-    public async Task<bool> DeleteAsync(string id)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
-        var result = await _collection.DeleteOneAsync(f => f.Id == id);
+        var result = await _collection.DeleteOneAsync(f => f.Id == id, cancellationToken);
         return result.IsAcknowledged && result.DeletedCount > 0;
     }
 
     // Search by title (partial match)
-    public async Task<List<Video.Film>> SearchByTitleAsync(string titleQuery)
+    public async Task<List<Video.Film>> SearchByTitleAsync(string titleQuery, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Video.Film>.Filter.And(
             Builders<Video.Film>.Filter.Regex(f => f.Title, new BsonRegularExpression(titleQuery, "i")),
             Builders<Video.Film>.Filter.Eq(f => f.CollectionType, Collection.Film)
         );
-        return await _collection.Find(filter).ToListAsync();
+        return await _collection.Find(filter).ToListAsync(cancellationToken);
     }
 
     // Search by director (partial match)
-    public async Task<List<Video.Film>> SearchByDirectorAsync(string directorQuery)
+    public async Task<List<Video.Film>> SearchByDirectorAsync(string directorQuery, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Video.Film>.Filter.And(
             Builders<Video.Film>.Filter.Regex(f => f.Director, new BsonRegularExpression(directorQuery, "i")),
             Builders<Video.Film>.Filter.Eq(f => f.CollectionType, Collection.Film)
         );
-        return await _collection.Find(filter).ToListAsync();
+        return await _collection.Find(filter).ToListAsync(cancellationToken);
     }
 
     // Get unwatched films
-    public async Task<List<Video.Film>> GetUnwatchedAsync() 
-        => await _collection.Find(f => !f.IsWatched && f.CollectionType == Collection.Film).ToListAsync();
+    public async Task<List<Video.Film>> GetUnwatchedAsync(CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => !f.IsWatched && f.CollectionType == Collection.Film).ToListAsync(cancellationToken);
 
     // Get watched films
-    public async Task<List<Video.Film>> GetWatchedAsync() 
-        => await _collection.Find(f => f.IsWatched && f.CollectionType == Collection.Film).ToListAsync();
+    public async Task<List<Video.Film>> GetWatchedAsync(CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => f.IsWatched && f.CollectionType == Collection.Film).ToListAsync(cancellationToken);
 
     // Get films by format
-    public async Task<List<Video.Film>> GetByFormatAsync(VideoFormat format) 
-        => await _collection.Find(f => f.Format == format && f.CollectionType == Collection.Film).ToListAsync();
+    public async Task<List<Video.Film>> GetByFormatAsync(VideoFormat format, CancellationToken cancellationToken = default) 
+        => await _collection.Find(f => f.Format == format && f.CollectionType == Collection.Film).ToListAsync(cancellationToken);
 }

@@ -8,7 +8,7 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
-public partial class ManageLightNovelCollections : ComponentBase
+public partial class ManageLightNovelCollections : ComponentBase, IDisposable
 {
     [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
     [Inject] private ILightNovelCommandService LightNovelCommandService { get; set; } = null!;
@@ -16,6 +16,7 @@ public partial class ManageLightNovelCollections : ComponentBase
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private string searchQuery = "";
     private List<Book.LightNovel> allLightNovels = new();
     private bool isLoading = true;
@@ -31,7 +32,7 @@ public partial class ManageLightNovelCollections : ComponentBase
     private async Task LoadLightNovels()
     {
         isLoading = true;
-        allLightNovels = await LightNovelQueryService.GetAllAsync();
+        allLightNovels = await LightNovelQueryService.GetAllAsync(cancellationTokenSource.Token);
         isLoading = false;
     }
 
@@ -41,11 +42,11 @@ public partial class ManageLightNovelCollections : ComponentBase
 
         if (string.IsNullOrWhiteSpace(searchQuery))
         {
-            allLightNovels = await LightNovelQueryService.GetAllAsync();
+            allLightNovels = await LightNovelQueryService.GetAllAsync(cancellationTokenSource.Token);
         }
         else
         {
-            allLightNovels = await LightNovelQueryService.SearchByTitleAsync(searchQuery);
+            allLightNovels = await LightNovelQueryService.SearchByTitleAsync(searchQuery, cancellationTokenSource.Token);
         }
 
         isLoading = false;
@@ -110,7 +111,7 @@ public partial class ManageLightNovelCollections : ComponentBase
     {
         try
         {
-            var success = await LightNovelCommandService.DeleteAsync(id);
+            var success = await LightNovelCommandService.DeleteAsync(id, cancellationTokenSource.Token);
             var successImage = DeleteImageFile(imagePath);
             if (success)
             {
@@ -137,7 +138,7 @@ public partial class ManageLightNovelCollections : ComponentBase
 
             foreach (var lightNovel in lightNovelsToDelete)
             {
-                var success = await LightNovelCommandService.DeleteAsync(lightNovel.Id);
+                var success = await LightNovelCommandService.DeleteAsync(lightNovel.Id, cancellationTokenSource.Token);
                 var successImage = DeleteImageFile(lightNovel.ImagePath);
                 if (success) deleteCount++;
             }
@@ -166,7 +167,7 @@ public partial class ManageLightNovelCollections : ComponentBase
 
             foreach (var lightNovel in allLightNovels)
             {
-                var success = await LightNovelCommandService.DeleteAsync(lightNovel.Id);
+                var success = await LightNovelCommandService.DeleteAsync(lightNovel.Id, cancellationTokenSource.Token);
                 var successImage = DeleteImageFile(lightNovel.ImagePath);
                 if (success) deleteCount++;
             }
@@ -217,5 +218,11 @@ public partial class ManageLightNovelCollections : ComponentBase
         }
 
         return false;
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

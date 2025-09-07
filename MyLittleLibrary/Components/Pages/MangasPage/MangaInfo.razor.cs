@@ -6,7 +6,7 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
 
-public partial class MangaInfo : ComponentBase
+public partial class MangaInfo : ComponentBase, IDisposable
 {
     [Parameter] [SupplyParameterFromQuery] public required string Title { get; set; }
 
@@ -15,6 +15,7 @@ public partial class MangaInfo : ComponentBase
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private List<Book.Manga> mangaVolumes = new();
     private bool isLoading = true;
     private bool showImagePreview = false;
@@ -37,7 +38,7 @@ public partial class MangaInfo : ComponentBase
         try
         {
             // Fetch all manga volumes for this series from the repository
-            var allMangas = await MangaQueryService.GetAllByTitleAsync(Title);
+            var allMangas = await MangaQueryService.GetAllByTitleAsync(Title, cancellationTokenSource.Token);
 
             // Filter mangas by title (case-insensitive)
             mangaVolumes = allMangas
@@ -59,7 +60,7 @@ public partial class MangaInfo : ComponentBase
         try
         {
             var updatedManga = manga with { IsRead = !manga.IsRead };
-            await MangaCommandService.UpdateAsync(updatedManga.Id, updatedManga);
+            await MangaCommandService.UpdateAsync(updatedManga.Id, updatedManga, cancellationTokenSource.Token);
             await LoadMangaVolumes();
             Snackbar.Add($"Manga marked as {(!manga.IsRead ? "read" : "unread")}", Severity.Success);
         }
@@ -150,5 +151,11 @@ public partial class MangaInfo : ComponentBase
     private void CloseImagePreview()
     {
         showImagePreview = false;
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

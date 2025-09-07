@@ -6,7 +6,7 @@ using MyLittleLibrary.Application.Commands;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
-public partial class FilmDialog : ComponentBase
+public partial class FilmDialog : ComponentBase, IDisposable
 {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     
@@ -16,6 +16,7 @@ public partial class FilmDialog : ComponentBase
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private FilmModel film = new();
     private bool isSubmitting = false;
 
@@ -126,7 +127,7 @@ public partial class FilmDialog : ComponentBase
                     releaseDate: film.ReleaseDate
                 );
 
-                await FilmCommandService.CreateAsync(newFilm);
+                await FilmCommandService.CreateAsync(newFilm, cancellationTokenSource.Token);
             }
             else
             {
@@ -142,7 +143,7 @@ public partial class FilmDialog : ComponentBase
                     id: FilmToEdit.Id
                 );
 
-                await FilmCommandService.UpdateAsync(FilmToEdit.Id, updatedFilm);
+                await FilmCommandService.UpdateAsync(FilmToEdit.Id, updatedFilm, cancellationTokenSource.Token);
             }
         
             MudDialog.Close(DialogResult.Ok(true));
@@ -171,5 +172,11 @@ public partial class FilmDialog : ComponentBase
         public DateTime? ReleaseDate { get; set; }
         public string? ImagePath { get; set; }
         public bool IsWatched { get; set; } = false;
+    }
+    
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

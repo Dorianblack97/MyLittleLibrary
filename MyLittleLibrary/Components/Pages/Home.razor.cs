@@ -5,7 +5,7 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages;
 
-public partial class Home : ComponentBase
+public partial class Home : ComponentBase, IDisposable
 {
     [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
     [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
@@ -14,13 +14,14 @@ public partial class Home : ComponentBase
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private string searchQuery = "";
     private int filmCount = 0;
     private int mangaSeriesCount = 0;
     private int mangaVolumeCount = 0;
     private int lightNovelSeriesCount = 0;
     private int lightNovelVolumeCount = 0;
-    private int totalCount => filmCount + mangaVolumeCount + lightNovelVolumeCount;
+    private int TotalCount => filmCount + mangaVolumeCount + lightNovelVolumeCount;
     private List<BaseObject> recentItems = new();
 
     protected override async Task OnInitializedAsync()
@@ -31,9 +32,9 @@ public partial class Home : ComponentBase
 
     private async Task LoadStatistics()
     {
-        var filmList = await FilmQueryService.GetAllAsync();
-        var mangaList = await MangaQueryService.GetAllAsync();
-        var lightNovelList = await LightNovelQueryService.GetAllAsync();
+        var filmList = await FilmQueryService.GetAllAsync(cancellationTokenSource.Token);
+        var mangaList = await MangaQueryService.GetAllAsync(cancellationTokenSource.Token);
+        var lightNovelList = await LightNovelQueryService.GetAllAsync(cancellationTokenSource.Token);
 
         filmCount = filmList.Count;
 
@@ -50,7 +51,7 @@ public partial class Home : ComponentBase
 
     private async Task LoadRecentItems()
     {
-        recentItems = await BaseObjectQueryService.GetMostRecentAsync();
+        recentItems = await BaseObjectQueryService.GetMostRecentAsync(8, cancellationTokenSource.Token);
     }
 
     private async Task PerformSearch()
@@ -77,5 +78,11 @@ public partial class Home : ComponentBase
             Collection.Film => "Film",
             _ => "Unknown"
         };
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

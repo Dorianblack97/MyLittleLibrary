@@ -19,7 +19,7 @@ public class BaseObjectRepository
     }
 
     // Get 8 most recent objects with only BaseObject properties
-    public async Task<List<BaseObject>> GetMostRecentAsync(int count = 8)
+    public async Task<List<BaseObject>> GetMostRecentAsync(int count = 8, CancellationToken cancellationToken = default)
     {
         
         var projection = Builders<BsonDocument>.Projection
@@ -35,7 +35,7 @@ public class BaseObjectRepository
             .Project(projection)
             .Sort(Builders<BsonDocument>.Sort.Descending("Timestamp"))
             .Limit(count)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return documents.Select(doc => new BaseObject(
             title: doc.GetValue("Title", "").AsString,
@@ -48,7 +48,7 @@ public class BaseObjectRepository
     }
 
     // Get 8 most recent objects by collection type with only BaseObject properties
-    public async Task<List<BaseObject>> GetMostRecentByTypeAsync(Collection collectionType, int count = 8)
+    public async Task<List<BaseObject>> GetMostRecentByTypeAsync(Collection collectionType, int count = 8, CancellationToken cancellationToken = default)
     {
         var projection = Builders<BsonDocument>.Projection
             .Include("_id")
@@ -65,7 +65,7 @@ public class BaseObjectRepository
             .Project(projection)
             .Sort(Builders<BsonDocument>.Sort.Descending("Timestamp"))
             .Limit(count)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return documents.Select(doc => new BaseObject(
             title: doc.GetValue("Title", "").AsString,
@@ -78,7 +78,7 @@ public class BaseObjectRepository
     }
 
     // Get all with only BaseObject properties
-    public async Task<List<BaseObject>> GetAllAsync()
+    public async Task<List<BaseObject>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var projection = Builders<BsonDocument>.Projection
             .Include("_id")
@@ -91,7 +91,7 @@ public class BaseObjectRepository
         var documents = await _collection
             .Find(new BsonDocument())
             .Project(projection)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return documents.Select(doc => new BaseObject(
             title: doc.GetValue("Title", "").AsString,
@@ -104,7 +104,7 @@ public class BaseObjectRepository
     }
 
     // Get by ID with only BaseObject properties
-    public async Task<BaseObject> GetByIdAsync(string id)
+    public async Task<BaseObject> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var projection = Builders<BsonDocument>.Projection
             .Include("_id")
@@ -119,7 +119,7 @@ public class BaseObjectRepository
         var document = await _collection
             .Find(filter)
             .Project(projection)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (document == null) return null;
 

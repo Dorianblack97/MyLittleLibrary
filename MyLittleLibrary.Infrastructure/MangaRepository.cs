@@ -19,30 +19,30 @@ public class MangaRepository
     }
 
     // Create
-    public async Task<Book.Manga> CreateAsync(Book.Manga manga)
+    public async Task<Book.Manga> CreateAsync(Book.Manga manga, CancellationToken cancellationToken = default)
     {
-        await _collection.InsertOneAsync(manga);
+        await _collection.InsertOneAsync(manga, cancellationToken: cancellationToken);
         return manga;
     }
 
     // Read - Get all
-    public async Task<List<Book.Manga>> GetAllAsync() 
-        => await _collection.Find(m => m.CollectionType == Collection.Manga).ToListAsync();
+    public async Task<List<Book.Manga>> GetAllAsync(CancellationToken cancellationToken = default) 
+        => await _collection.Find(m => m.CollectionType == Collection.Manga).ToListAsync(cancellationToken);
 
     // Read - Get all by title
-    public async Task<List<Book.Manga>> GetAllByTitleAsync(string title) 
-        => await _collection.Find(m => m.Title == title && m.CollectionType == Collection.Manga).ToListAsync();
+    public async Task<List<Book.Manga>> GetAllByTitleAsync(string title, CancellationToken cancellationToken = default) 
+        => await _collection.Find(m => m.Title == title && m.CollectionType == Collection.Manga).ToListAsync(cancellationToken);
 
     // Read - Get by ID
-    public async Task<Book.Manga> GetByIdAsync(string id) 
-        => await _collection.Find(m => m.Id == id).FirstOrDefaultAsync();
+    public async Task<Book.Manga> GetByIdAsync(string id, CancellationToken cancellationToken = default) 
+        => await _collection.Find(m => m.Id == id).FirstOrDefaultAsync(cancellationToken);
 
     // Read - Get by title
-    public async Task<Book.Manga> GetByTitleAsync(string title) 
-        => await _collection.Find(m => m.Title == title && m.CollectionType == Collection.Manga).FirstOrDefaultAsync();
+    public async Task<Book.Manga> GetByTitleAsync(string title, CancellationToken cancellationToken = default) 
+        => await _collection.Find(m => m.Title == title && m.CollectionType == Collection.Manga).FirstOrDefaultAsync(cancellationToken);
 
     // Update
-    public async Task<bool> UpdateAsync(string id, Book.Manga updatedManga)
+    public async Task<bool> UpdateAsync(string id, Book.Manga updatedManga, CancellationToken cancellationToken = default)
     {
         var update = Builders<Book.Manga>.Update
             .Set(m => m.Title, updatedManga.Title)
@@ -57,25 +57,26 @@ public class MangaRepository
     
         var result = await _collection.UpdateOneAsync(
             m => m.Id == id,
-            update);
+            update,
+            cancellationToken: cancellationToken);
 
         return result.IsAcknowledged && result.ModifiedCount > 0;
     }
 
     // Delete
-    public async Task<bool> DeleteAsync(string id)
+    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
-        var result = await _collection.DeleteOneAsync(m => m.Id == id);
+        var result = await _collection.DeleteOneAsync(m => m.Id == id, cancellationToken);
         return result.IsAcknowledged && result.DeletedCount > 0;
     }
 
     // Search by title (partial match)
-    public async Task<List<Book.Manga>> SearchByTitleAsync(string titleQuery)
+    public async Task<List<Book.Manga>> SearchByTitleAsync(string titleQuery, CancellationToken cancellationToken = default)
     {
         var filter = Builders<Book.Manga>.Filter.And(
             Builders<Book.Manga>.Filter.Regex(m => m.Title, new BsonRegularExpression(titleQuery, "i")),
             Builders<Book.Manga>.Filter.Eq(m => m.CollectionType, Collection.Manga)
         );
-        return await _collection.Find(filter).ToListAsync();
+        return await _collection.Find(filter).ToListAsync(cancellationToken);
     }
 }

@@ -4,7 +4,7 @@ namespace MyLittleLibrary.Application.Commands;
 
 public interface IMangaCommandService
 {
-    Task<Book.Manga> CreateAsync(Book.Manga manga);
-    Task<bool> UpdateAsync(string id, Book.Manga updatedManga);
-    Task<bool> DeleteAsync(string id);
+    Task<Book.Manga> CreateAsync(Book.Manga manga, CancellationToken cancellationToken = default);
+    Task<bool> UpdateAsync(string id, Book.Manga updatedManga, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default);
 }

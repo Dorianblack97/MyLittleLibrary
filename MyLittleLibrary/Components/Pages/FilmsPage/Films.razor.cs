@@ -5,13 +5,14 @@ using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
-public partial class Films : ComponentBase
+public partial class Films : ComponentBase, IDisposable
 {
     [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private bool isLoading = true;
     private List<FilmModel> films = new();
     private List<FilmModel> filteredFilms = new();
@@ -29,7 +30,7 @@ public partial class Films : ComponentBase
         try
         {
             // Get all films from the repository
-            var allFilms = await FilmQueryService.GetAllAsync();
+            var allFilms = await FilmQueryService.GetAllAsync(cancellationTokenSource.Token);
 
             // Convert to FilmModel for display
             films = allFilms
@@ -124,5 +125,11 @@ public partial class Films : ComponentBase
         public bool IsWatched { get; set; }
         public DateTime? ReleaseDate { get; set; }
         public string? CoverImage { get; set; }
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

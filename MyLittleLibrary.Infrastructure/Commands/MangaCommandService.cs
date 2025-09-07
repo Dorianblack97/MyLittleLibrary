@@ -12,9 +12,9 @@ public class MangaCommandService : IMangaCommandService
         _repository = repository;
     }
 
-    public Task<Book.Manga> CreateAsync(Book.Manga manga) => _repository.CreateAsync(manga);
+    public Task<Book.Manga> CreateAsync(Book.Manga manga, CancellationToken cancellationToken = default) => _repository.CreateAsync(manga, cancellationToken);
 
-    public Task<bool> UpdateAsync(string id, Book.Manga updatedManga) => _repository.UpdateAsync(id, updatedManga);
+    public Task<bool> UpdateAsync(string id, Book.Manga updatedManga, CancellationToken cancellationToken = default) => _repository.UpdateAsync(id, updatedManga, cancellationToken);
 
-    public Task<bool> DeleteAsync(string id) => _repository.DeleteAsync(id);
+    public Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default) => _repository.DeleteAsync(id, cancellationToken);
 }

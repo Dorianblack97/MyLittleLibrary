@@ -6,12 +6,13 @@ using MyLittleLibrary.Components.Shared;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
 
-public partial class MangaDialog : BookUploadDialog
+public partial class MangaDialog : BookUploadDialog, IDisposable
 {
     [Parameter] public Book.Manga? MangaToEdit { get; set; }
 
     [Inject] private IMangaCommandService MangaCommandService { get; set; } = null!;
 
+    private readonly CancellationTokenSource cancellationTokenSource = new();
     private MangaMutable manga = new();
 
     protected override void InitializeData()
@@ -67,7 +68,7 @@ public partial class MangaDialog : BookUploadDialog
             originalId
         );
 
-        await MangaCommandService.UpdateAsync(originalId, mangaRecord);
+        await MangaCommandService.UpdateAsync(originalId, mangaRecord, cancellationTokenSource.Token);
     }
     
     protected override async Task CreateSingle()
@@ -95,7 +96,7 @@ public partial class MangaDialog : BookUploadDialog
             publishDate
         );
         
-        await MangaCommandService.CreateAsync(newManga);
+        await MangaCommandService.CreateAsync(newManga, cancellationTokenSource.Token);
     }
     
     protected override async Task CreateMultiple()
@@ -156,7 +157,13 @@ public partial class MangaDialog : BookUploadDialog
                 publishDate
             );
             
-            await MangaCommandService.CreateAsync(newManga);
+            await MangaCommandService.CreateAsync(newManga, cancellationTokenSource.Token);
         }
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

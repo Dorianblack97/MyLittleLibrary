@@ -44,6 +44,9 @@ builder.Services.AddScoped<ILightNovelService, LightNovelService>();
 builder.Services.AddScoped<IFilmService, FilmService>();
 builder.Services.AddScoped<IBaseObjectService, BaseObjectService>();
 
+// Notification service
+builder.Services.AddScoped<INotificationService, MyLittleLibrary.Services.NotificationService>();
+
 // Query services
 builder.Services.AddScoped<IMangaQueryService, MangaQueryService>();
 builder.Services.AddScoped<ILightNovelQueryService, LightNovelQueryService>();

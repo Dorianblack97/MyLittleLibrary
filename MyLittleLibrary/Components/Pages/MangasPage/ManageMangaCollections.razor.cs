@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using MyLittleLibrary.Domain;
 using MyLittleLibrary.Components.Shared;
 using MudBlazor;
+using MyLittleLibrary.Application;
 using MyLittleLibrary.Application.Commands;
 using MyLittleLibrary.Application.Queries;
 
@@ -13,7 +14,7 @@ public partial class ManageMangaCollections : ComponentBase, IDisposable
     [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
     [Inject] private IMangaCommandService MangaCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -115,17 +116,17 @@ public partial class ManageMangaCollections : ComponentBase, IDisposable
             var successImage = DeleteImageFile(imagePath);
             if (success)
             {
-                Snackbar.Add("Manga deleted successfully", Severity.Success);
+                Notifications.Success("Manga deleted successfully");
                 await LoadMangas();
             }
             else
             {
-                Snackbar.Add("Failed to delete manga", Severity.Error);
+                Notifications.Error("Failed to delete manga");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error(ex);
         }
     }
 

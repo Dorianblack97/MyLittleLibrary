@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using MyLittleLibrary.Domain;
 using MyLittleLibrary.Components.Shared;
 using MudBlazor;
+using MyLittleLibrary.Application;
 using MyLittleLibrary.Application.Commands;
 using MyLittleLibrary.Application.Queries;
 
@@ -13,7 +14,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
     [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
     [Inject] private IFilmCommandService FilmCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -39,7 +40,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading films: {ex.Message}", Severity.Error);
+            Notifications.Error(ex, "Error loading films");
         }
         finally
         {
@@ -92,17 +93,17 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
             
             if (success)
             {
-                Snackbar.Add($"'{film.Title}' marked as {(updatedFilm.IsWatched ? "watched" : "unwatched")}", Severity.Success);
+                Notifications.Success($"'{film.Title}' marked as {(updatedFilm.IsWatched ? "watched" : "unwatched")}");
                 await LoadFilms();
             }
             else
             {
-                Snackbar.Add("Failed to update film status", Severity.Error);
+                Notifications.Error("Failed to update film status");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error(ex);
         }
     }
 
@@ -121,7 +122,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
         if (!result.Canceled)
         {
             await LoadFilms();
-            Snackbar.Add("Film added successfully!", Severity.Success);
+            Notifications.Success("Film added successfully!");
         }
     }
 
@@ -141,7 +142,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
         if (!result.Canceled)
         {
             await LoadFilms();
-            Snackbar.Add("Film updated successfully!", Severity.Success);
+            Notifications.Success("Film updated successfully!");
         }
     }
 
@@ -188,17 +189,17 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
             var success = await FilmCommandService.DeleteAsync(id, cancellationTokenSource.Token);
             if (success)
             {
-                Snackbar.Add("Film deleted successfully", Severity.Success);
+                Notifications.Success("Film deleted successfully");
                 await LoadFilms();
             }
             else
             {
-                Snackbar.Add("Failed to delete film", Severity.Error);
+                Notifications.Error("Failed to delete film");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error(ex);
         }
     }
 
@@ -216,17 +217,17 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
 
             if (deleteCount > 0)
             {
-                Snackbar.Add($"Successfully deleted {deleteCount} films", Severity.Success);
+                Notifications.Success($"Successfully deleted {deleteCount} films");
                 await LoadFilms();
             }
             else
             {
-                Snackbar.Add("No films were deleted", Severity.Warning);
+                Notifications.Warning("No films were deleted");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error(ex);
         }
     }
 

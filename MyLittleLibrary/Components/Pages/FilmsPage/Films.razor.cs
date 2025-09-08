@@ -2,6 +2,7 @@
 using MyLittleLibrary.Domain;
 using MudBlazor;
 using MyLittleLibrary.Application.Queries;
+using MyLittleLibrary.Application;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
 
@@ -9,7 +10,7 @@ public partial class Films : ComponentBase, IDisposable
 {
     [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -108,7 +109,7 @@ public partial class Films : ComponentBase, IDisposable
 
         if (!result.Canceled)
         {
-            Snackbar.Add("Film successfully added!", Severity.Success);
+            Notifications.Success("Film successfully added!");
             // Force a reload with a slight delay to ensure file is fully saved
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadFilmCollection(); // Reload the film list

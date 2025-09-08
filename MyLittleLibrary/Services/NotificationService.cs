@@ -41,8 +41,8 @@ public class NotificationService : INotificationService
     {
         var opt = durationMs.HasValue ? new Action<SnackbarOptions>(o => o.VisibleStateDuration = durationMs.Value) : null;
         if (opt is null)
-            _snackbar.Add(message, severity);
+            _snackbar.Add(message: message, severity: severity, key: key);
         else
-            _snackbar.Add(message, severity, opt);
+            _snackbar.Add(message, severity, opt, key);
     }
 }

@@ -3,6 +3,7 @@ using MyLittleLibrary.Domain;
 using MyLittleLibrary.Components.Shared;
 using MudBlazor;
 using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Application;
 using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.FilmsPage;
@@ -16,7 +17,7 @@ public partial class FilmInfo : ComponentBase, IDisposable
     [Inject] private IFilmQueryService FilmQueryService { get; set; } = null!;
     [Inject] private IFilmCommandService FilmCommandService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -62,11 +63,11 @@ public partial class FilmInfo : ComponentBase, IDisposable
             await FilmCommandService.UpdateAsync(film.Id, updatedFilm, cancellationTokenSource.Token);
             film = updatedFilm;
             
-            Snackbar.Add($"Film marked as {(film.IsWatched ? "watched" : "unwatched")}", Severity.Success);
+            Notifications.Success($"Film marked as {(film.IsWatched ? "watched" : "unwatched")}");
         }
         catch (Exception)
         {
-            Snackbar.Add("Error updating film status", Severity.Error);
+            Notifications.Error("Error updating film status");
         }
     }
 
@@ -86,7 +87,7 @@ public partial class FilmInfo : ComponentBase, IDisposable
         if (!result.Canceled)
         {
             await LoadFilm();
-            Snackbar.Add("Film updated successfully!", Severity.Success);
+            Notifications.Success("Film updated successfully!");
         }
     }
 
@@ -107,12 +108,12 @@ public partial class FilmInfo : ComponentBase, IDisposable
             try
             {
                 await FilmCommandService.DeleteAsync(film!.Id, cancellationTokenSource.Token);
-                Snackbar.Add("Film deleted successfully!", Severity.Success);
+                Notifications.Success("Film deleted successfully!");
                 NavigationManager.NavigateTo("/film");
             }
             catch (Exception)
             {
-                Snackbar.Add("Error deleting film", Severity.Error);
+                Notifications.Error("Error deleting film");
             }
         }
     }

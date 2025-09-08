@@ -4,6 +4,7 @@ using MyLittleLibrary.Domain;
 using MyLittleLibrary.Components.Shared;
 using MudBlazor;
 using MyLittleLibrary.Application;
+using MyLittleLibrary.Application;
 using MyLittleLibrary.Application.Commands;
 using MyLittleLibrary.Application.Queries;
 
@@ -146,17 +147,17 @@ public partial class ManageMangaCollections : ComponentBase, IDisposable
 
             if (deleteCount > 0)
             {
-                Snackbar.Add($"Successfully deleted {deleteCount} manga volumes", Severity.Success);
+                Notifications.Success($"Successfully deleted {deleteCount} manga volumes");
                 await LoadMangas();
             }
             else
             {
-                Snackbar.Add("No manga volumes were deleted", Severity.Warning);
+                Notifications.Warning("No manga volumes were deleted");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error($"Error: {ex.Message}");
         }
     }
 
@@ -175,17 +176,17 @@ public partial class ManageMangaCollections : ComponentBase, IDisposable
 
             if (deleteCount > 0)
             {
-                Snackbar.Add($"Successfully deleted {deleteCount} manga volumes", Severity.Success);
+                Notifications.Success($"Successfully deleted {deleteCount} manga volumes");
                 await LoadMangas();
             }
             else
             {
-                Snackbar.Add("No manga volumes were deleted", Severity.Warning);
+                Notifications.Warning("No manga volumes were deleted");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error($"Error: {ex.Message}");
         }
     }
     

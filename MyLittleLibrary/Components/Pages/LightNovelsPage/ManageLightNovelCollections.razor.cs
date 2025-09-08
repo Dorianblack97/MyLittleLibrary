@@ -5,6 +5,7 @@ using MyLittleLibrary.Components.Shared;
 using MudBlazor;
 using MyLittleLibrary.Application.Commands;
 using MyLittleLibrary.Application.Queries;
+using MyLittleLibrary.Application;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
@@ -13,7 +14,7 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
     [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
     [Inject] private ILightNovelCommandService LightNovelCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -115,17 +116,17 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
             var successImage = DeleteImageFile(imagePath);
             if (success)
             {
-                Snackbar.Add("Light Novel deleted successfully", Severity.Success);
+                Notifications.Success("Light Novel deleted successfully");
                 await LoadLightNovels();
             }
             else
             {
-                Snackbar.Add("Failed to delete light novel", Severity.Error);
+                Notifications.Error("Failed to delete light novel");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error(ex);
         }
     }
 
@@ -145,17 +146,17 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
 
             if (deleteCount > 0)
             {
-                Snackbar.Add($"Successfully deleted {deleteCount} light novel volumes", Severity.Success);
+                Notifications.Success($"Successfully deleted {deleteCount} light novel volumes");
                 await LoadLightNovels();
             }
             else
             {
-                Snackbar.Add("No light novel volumes were deleted", Severity.Warning);
+                Notifications.Warning("No light novel volumes were deleted");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error($"Error: {ex.Message}");
         }
     }
 
@@ -174,17 +175,17 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
 
             if (deleteCount > 0)
             {
-                Snackbar.Add($"Successfully deleted {deleteCount} light novel volumes", Severity.Success);
+                Notifications.Success($"Successfully deleted {deleteCount} light novel volumes");
                 await LoadLightNovels();
             }
             else
             {
-                Snackbar.Add("No light novel volumes were deleted", Severity.Warning);
+                Notifications.Warning("No light novel volumes were deleted");
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            Notifications.Error($"Error: {ex.Message}");
         }
     }
 

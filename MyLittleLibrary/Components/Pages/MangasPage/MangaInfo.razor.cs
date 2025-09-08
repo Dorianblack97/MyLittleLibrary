@@ -2,6 +2,7 @@
 using MyLittleLibrary.Domain;
 using MudBlazor;
 using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Application;
 using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.MangasPage;
@@ -13,7 +14,7 @@ public partial class MangaInfo : ComponentBase, IDisposable
     [Inject] private IMangaQueryService MangaQueryService { get; set; } = null!;
     [Inject] private IMangaCommandService MangaCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private List<Book.Manga> mangaVolumes = new();
@@ -62,11 +63,11 @@ public partial class MangaInfo : ComponentBase, IDisposable
             var updatedManga = manga with { IsRead = !manga.IsRead };
             await MangaCommandService.UpdateAsync(updatedManga.Id, updatedManga, cancellationTokenSource.Token);
             await LoadMangaVolumes();
-            Snackbar.Add($"Manga marked as {(!manga.IsRead ? "read" : "unread")}", Severity.Success);
+            Notifications.Success($"Manga marked as {(!manga.IsRead ? "read" : "unread")}");
         }
         catch (Exception)
         {
-            Snackbar.Add("Error updating manga status", Severity.Error);
+            Notifications.Error("Error updating manga status");
         }
     }
 
@@ -91,7 +92,7 @@ public partial class MangaInfo : ComponentBase, IDisposable
 
         if (!result.Canceled)
         {
-            Snackbar.Add("Manga successfully updated!", Severity.Success);
+            Notifications.Success("Manga successfully updated!");
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadMangaVolumes();
             StateHasChanged(); // Force UI refresh
@@ -132,7 +133,7 @@ public partial class MangaInfo : ComponentBase, IDisposable
 
         if (!result.Canceled)
         {
-            Snackbar.Add("Manga successfully added!", Severity.Success);
+            Notifications.Success("Manga successfully added!");
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadMangaVolumes();
             StateHasChanged(); // Force UI refresh

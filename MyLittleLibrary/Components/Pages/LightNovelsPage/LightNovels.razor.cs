@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MyLittleLibrary.Application.Queries;
+using MyLittleLibrary.Application;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
 
@@ -8,7 +9,7 @@ public partial class LightNovels : ComponentBase, IDisposable
 {
     [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -110,7 +111,7 @@ public partial class LightNovels : ComponentBase, IDisposable
 
         if (!result.Canceled)
         {
-            Snackbar.Add("Light Novel successfully added!", Severity.Success);
+            Notifications.Success("Light Novel successfully added!");
             // Force a reload with a slight delay to ensure file is fully saved
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadLightNovelCollection(); // Reload the light novel list

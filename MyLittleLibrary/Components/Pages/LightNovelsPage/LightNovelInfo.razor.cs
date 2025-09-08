@@ -2,6 +2,7 @@
 using MyLittleLibrary.Domain;
 using MudBlazor;
 using MyLittleLibrary.Application.Commands;
+using MyLittleLibrary.Application;
 using MyLittleLibrary.Application.Queries;
 
 namespace MyLittleLibrary.Components.Pages.LightNovelsPage;
@@ -15,7 +16,7 @@ public partial class LightNovelInfo : ComponentBase, IDisposable
     [Inject] private ILightNovelQueryService LightNovelQueryService { get; set; } = null!;
     [Inject] private ILightNovelCommandService LightNovelCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
-    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private INotificationService Notifications { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private List<Book.LightNovel> lightNovelVolumes = new();
@@ -64,11 +65,11 @@ public partial class LightNovelInfo : ComponentBase, IDisposable
             var updatedLightNovel = lightNovel with { IsRead = !lightNovel.IsRead };
             await LightNovelCommandService.UpdateAsync(updatedLightNovel.Id, updatedLightNovel, cancellationTokenSource.Token);
             await LoadLightNovelVolumes();
-            Snackbar.Add($"Light novel marked as {(!lightNovel.IsRead ? "read" : "unread")}", Severity.Success);
+            Notifications.Success($"Light novel marked as {(!lightNovel.IsRead ? "read" : "unread")}");
         }
         catch (Exception)
         {
-            Snackbar.Add("Error updating light novel status", Severity.Error);
+            Notifications.Error("Error updating light novel status");
         }
     }
 
@@ -93,7 +94,7 @@ public partial class LightNovelInfo : ComponentBase, IDisposable
 
         if (!result.Canceled)
         {
-            Snackbar.Add("Light novel successfully updated!", Severity.Success);
+            Notifications.Success("Light novel successfully updated!");
             await Task.Delay(100); // Small delay to ensure file system operations complete
             await LoadLightNovelVolumes();
             StateHasChanged(); // Force UI refresh
@@ -137,7 +138,7 @@ public partial class LightNovelInfo : ComponentBase, IDisposable
 
             if (!result.Canceled)
             {
-                Snackbar.Add("Light novel successfully added!", Severity.Success);
+                Notifications.Success("Light novel successfully added!");
                 await Task.Delay(100); // Small delay to ensure file system operations complete
                 await LoadLightNovelVolumes();
                 StateHasChanged(); // Force UI refresh

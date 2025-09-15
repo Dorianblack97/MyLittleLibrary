@@ -1,15 +1,18 @@
 ﻿using MyLittleLibrary.Domain;
 using MyLittleLibrary.Application;
+using Microsoft.Extensions.Logging;
 
 namespace MyLittleLibrary.Infrastructure;
 
 public class MangaService : IMangaService
 {
     private readonly MangaRepository _repository;
+    private readonly ILogger<MangaService> _logger;
 
-    public MangaService(MangaRepository repository)
+    public MangaService(MangaRepository repository, ILogger<MangaService> logger)
     {
         _repository = repository;
+        _logger = logger;
     }
 
     public Task<List<Book.Manga>> GetAllAsync(CancellationToken cancellationToken = default) => _repository.GetAllAsync(cancellationToken);

@@ -6,23 +6,30 @@ using MyLittleLibrary.Domain;
 using MyLittleLibrary.Infrastructure.Constants;
 using MyLittleLibrary.Infrastructure.Options;
 
+using Microsoft.Extensions.Logging;
+
 namespace MyLittleLibrary.Infrastructure;
 
 public class FilmRepository
 {
     private readonly IMongoCollection<Video.Film> _collection;
+    private readonly ILogger<FilmRepository> _logger;
 
-    public FilmRepository(IOptions<MongoOptions> options)
+    public FilmRepository(IOptions<MongoOptions> options, ILogger<FilmRepository> logger)
     {
+        _logger = logger;
         var client = new MongoClient(options.Value.ConnectionString);
         var database = client.GetDatabase(options.Value.DatabaseName);
         _collection = database.GetCollection<Video.Film>(MongoDbContracts.MongoCollection);
+        _logger.LogInformation("FilmRepository initialized for {Db}", options.Value.DatabaseName);
     }
 
     // Create
     public async Task<Video.Film> CreateAsync(Video.Film film, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Creating film {Title}", film.Title);
         await _collection.InsertOneAsync(film, cancellationToken: cancellationToken);
+        _logger.LogInformation("Created film {Id}", film.Id);
         return film;
     }
 
@@ -35,12 +42,21 @@ public class FilmRepository
         => await _collection.Find(f => f.Title == title && f.CollectionType == Collection.Film).ToListAsync(cancellationToken);
 
     // Read - Get by ID
-    public async Task<Video.Film> GetByIdAsync(string id, CancellationToken cancellationToken = default) 
-        => await _collection.Find(f => f.Id == id).FirstOrDefaultAsync(cancellationToken);
+    public async Task<Video.Film> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var film = await _collection.Find(f => f.Id == id).FirstOrDefaultAsync(cancellationToken);
+        if (film is null) _logger.LogWarning("Film {Id} not found", id);
+        return film;       
+    }
 
     // Read - Get by title
-    public async Task<Video.Film> GetByTitleAsync(string title, CancellationToken cancellationToken = default) 
-        => await _collection.Find(f => f.Title == title && f.CollectionType == Collection.Film).FirstOrDefaultAsync(cancellationToken);
+    public async Task<Video.Film> GetByTitleAsync(string title, CancellationToken cancellationToken = default)
+    {
+        var film = await _collection.Find(f => f.Title == title && f.CollectionType == Collection.Film)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (film is null) _logger.LogWarning("Film {Title} not found", title);
+        return film;       
+    }
 
     // Read - Get by director
     public async Task<List<Video.Film>> GetByDirectorAsync(string director, CancellationToken cancellationToken = default) 
@@ -58,19 +74,25 @@ public class FilmRepository
             .Set(f => f.ReleaseDate, updatedFilm.ReleaseDate)
             .Set(f => f.ImagePath, updatedFilm.ImagePath);
 
+        _logger.LogInformation("Updating film {Id} to title {Title}", id, updatedFilm.Title);
         var result = await _collection.UpdateOneAsync(
             f => f.Id == id,
             update,
             cancellationToken: cancellationToken);
 
-        return result.IsAcknowledged && result.ModifiedCount > 0;
+        var ok = result.IsAcknowledged && result.ModifiedCount > 0;
+        if (!ok) _logger.LogWarning("No film updated for {Id}", id);
+        return ok;       
     }
 
     // Delete
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Deleting film {Id}", id);      
         var result = await _collection.DeleteOneAsync(f => f.Id == id, cancellationToken);
-        return result.IsAcknowledged && result.DeletedCount > 0;
+        var ok = result.IsAcknowledged && result.DeletedCount > 0;
+        if (!ok) _logger.LogWarning("No film deleted for {Id}", id);
+        return ok;       
     }
 
     // Search by title (partial match)

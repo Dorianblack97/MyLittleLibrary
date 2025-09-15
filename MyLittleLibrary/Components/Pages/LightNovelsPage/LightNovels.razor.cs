@@ -11,6 +11,7 @@ public partial class LightNovels : ComponentBase, IDisposable
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private ILogger<LightNovels> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private bool isLoading = true;
@@ -51,9 +52,10 @@ public partial class LightNovels : ComponentBase, IDisposable
             // Initialize filtered list with all light novels
             filteredLightNovelSeries = lightNovelSeries.ToList();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle any exceptions
+            Logger.LogError(ex, "Error loading light novel series");      
         }
         finally
         {

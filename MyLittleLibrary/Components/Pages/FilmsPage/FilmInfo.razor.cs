@@ -19,6 +19,7 @@ public partial class FilmInfo : ComponentBase, IDisposable
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private ILogger<FilmInfo> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private Video.Film? film;
@@ -43,9 +44,10 @@ public partial class FilmInfo : ComponentBase, IDisposable
         {
             film = await FilmQueryService.GetByTitleAsync(Title!, cancellationTokenSource.Token);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle exceptions
+            Logger.LogError(ex, "Error loading film");
         }
         finally
         {
@@ -65,9 +67,10 @@ public partial class FilmInfo : ComponentBase, IDisposable
             
             Notifications.Success($"Film marked as {(film.IsWatched ? "watched" : "unwatched")}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             Notifications.Error("Error updating film status");
+            Logger.LogError(ex, "Error updating film status");      
         }
     }
 
@@ -111,9 +114,10 @@ public partial class FilmInfo : ComponentBase, IDisposable
                 Notifications.Success("Film deleted successfully!");
                 NavigationManager.NavigateTo("/film");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Notifications.Error("Error deleting film");
+                Logger.LogError(ex, "Error deleting film");
             }
         }
     }

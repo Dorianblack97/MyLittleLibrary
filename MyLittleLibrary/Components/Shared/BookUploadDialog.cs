@@ -8,6 +8,7 @@ public abstract class BookUploadDialog : ComponentBase
 {
     [Inject] protected IWebHostEnvironment Environment { get; set; }
     [Inject] protected IConfiguration Configuration { get; set; }
+    [Inject] private ILogger<BookUploadDialog> Logger { get; set; } = null!;
 
     [CascadingParameter] protected IMudDialogInstance MudDialog { get; set; }
         
@@ -235,6 +236,7 @@ public abstract class BookUploadDialog : ComponentBase
                 isSubmitting = false;
                 hasUploadErrors = true;
                 uploadErrorMessage = $"Error saving {BookType.ToLower()}: {ex.Message}";
+                Logger.LogError(ex, "Error saving {BookType.ToLower()}");
             }
         }
     }

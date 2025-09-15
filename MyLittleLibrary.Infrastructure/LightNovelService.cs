@@ -1,15 +1,18 @@
 ﻿using MyLittleLibrary.Domain;
 using MyLittleLibrary.Application;
+using Microsoft.Extensions.Logging;
 
 namespace MyLittleLibrary.Infrastructure;
 
 public class LightNovelService : ILightNovelService
 {
     private readonly LightNovelRepository _repository;
+    private readonly ILogger<LightNovelService> _logger;
 
-    public LightNovelService(LightNovelRepository repository)
+    public LightNovelService(LightNovelRepository repository, ILogger<LightNovelService> logger)
     {
         _repository = repository;
+        _logger = logger;
     }
 
     public Task<List<Book.LightNovel>> GetAllAsync(CancellationToken cancellationToken = default) => _repository.GetAllAsync(cancellationToken);

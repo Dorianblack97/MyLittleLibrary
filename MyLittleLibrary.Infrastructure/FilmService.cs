@@ -1,15 +1,18 @@
 ﻿using MyLittleLibrary.Domain;
 using MyLittleLibrary.Application;
+using Microsoft.Extensions.Logging;
 
 namespace MyLittleLibrary.Infrastructure;
 
 public class FilmService : IFilmService
 {
     private readonly FilmRepository _repository;
+    private readonly ILogger<FilmService> _logger;
 
-    public FilmService(FilmRepository repository)
+    public FilmService(FilmRepository repository, ILogger<FilmService> logger)
     {
         _repository = repository;
+        _logger = logger;
     }
 
     public Task<List<Video.Film>> GetAllAsync(CancellationToken cancellationToken = default) => _repository.GetAllAsync(cancellationToken);

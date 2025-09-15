@@ -9,7 +9,31 @@ using MyLittleLibrary.Application.Commands;
 using MyLittleLibrary.Infrastructure.Queries;
 using MyLittleLibrary.Infrastructure.Commands;
 
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Grafana.Loki;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Serilog configuration
+var lokiUrl = Environment.GetEnvironmentVariable("LOKI_URL");
+var serviceName = "MyLittleLibrary";
+var loggerConfiguration = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Service", serviceName)
+    .WriteTo.Console();
+
+if (!string.IsNullOrWhiteSpace(lokiUrl))
+{
+    loggerConfiguration = loggerConfiguration.WriteTo.GrafanaLoki(lokiUrl);
+}
+
+Log.Logger = loggerConfiguration.CreateLogger();
+
+builder.Host.UseSerilog(Log.Logger, dispose: true);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();

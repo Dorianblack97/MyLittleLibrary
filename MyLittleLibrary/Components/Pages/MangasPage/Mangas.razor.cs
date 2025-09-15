@@ -11,6 +11,7 @@ public partial class Mangas : ComponentBase, IDisposable
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private ILogger<Mangas> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private bool isLoading = true;
@@ -51,9 +52,10 @@ public partial class Mangas : ComponentBase, IDisposable
             // Initialize filtered list with all manga
             filteredMangaSeries = mangaSeries.ToList();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle any exceptions
+            Logger.LogError(ex, "Error loading manga series");       
         }
         finally
         {

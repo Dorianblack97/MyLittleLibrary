@@ -12,6 +12,7 @@ public partial class Films : ComponentBase, IDisposable
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private ILogger<Films> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private bool isLoading = true;
@@ -50,9 +51,10 @@ public partial class Films : ComponentBase, IDisposable
             // Initialize filtered list with all films
             filteredFilms = films.ToList();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle any exceptions
+            Logger.LogError(ex, "Error loading films");      
         }
         finally
         {

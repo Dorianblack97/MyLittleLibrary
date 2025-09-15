@@ -16,6 +16,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private ILogger<ManageFilmCollections> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private string searchQuery = "";
@@ -41,6 +42,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error(ex, "Error loading films");
+            Logger.LogError(ex, "Error loading films");      
         }
         finally
         {
@@ -104,6 +106,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error(ex);
+            Logger.LogError(ex, "Error updating film status");      
         }
     }
 
@@ -200,6 +203,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error(ex);
+            Logger.LogError(ex, "Error deleting film");      
         }
     }
 
@@ -228,6 +232,7 @@ public partial class ManageFilmCollections : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error(ex);
+            Logger.LogError(ex, "Error deleting all films");
         }
     }
 

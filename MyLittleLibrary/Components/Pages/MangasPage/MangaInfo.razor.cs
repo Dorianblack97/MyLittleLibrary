@@ -15,6 +15,7 @@ public partial class MangaInfo : ComponentBase, IDisposable
     [Inject] private IMangaCommandService MangaCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
+    [Inject] private ILogger<MangaInfo> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private List<Book.Manga> mangaVolumes = new();
@@ -46,9 +47,10 @@ public partial class MangaInfo : ComponentBase, IDisposable
                 .OrderBy(m => m.Volume)
                 .ToList();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle any exceptions
+            Logger.LogError(ex, "Error loading manga volumes");       
         }
         finally
         {
@@ -65,9 +67,10 @@ public partial class MangaInfo : ComponentBase, IDisposable
             await LoadMangaVolumes();
             Notifications.Success($"Manga marked as {(!manga.IsRead ? "read" : "unread")}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             Notifications.Error("Error updating manga status");
+            Logger.LogError(ex, "Error updating manga status");       
         }
     }
 

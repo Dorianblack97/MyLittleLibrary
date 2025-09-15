@@ -16,6 +16,7 @@ public partial class FilmDialog : ComponentBase, IDisposable
     [Inject] private IFilmCommandService FilmCommandService { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
+    [Inject] private ILogger<FilmDialog> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private FilmModel film = new();
@@ -152,6 +153,7 @@ public partial class FilmDialog : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error(ex, FilmToEdit is null ? "Error adding film" : "Error updating film");
+            Logger.LogError(ex, FilmToEdit is null ? "Error adding film" : "Error updating film");      
         }
         finally
         {

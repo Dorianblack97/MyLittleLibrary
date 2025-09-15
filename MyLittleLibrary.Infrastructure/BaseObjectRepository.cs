@@ -5,17 +5,22 @@ using MyLittleLibrary.Infrastructure.Options;
 using MongoDB.Bson;
 using MyLittleLibrary.Infrastructure.Constants;
 
+using Microsoft.Extensions.Logging;
+
 namespace MyLittleLibrary.Infrastructure;
 
 public class BaseObjectRepository
 {
     private readonly IMongoCollection<BsonDocument> _collection;
+    private readonly ILogger<BaseObjectRepository> _logger;
 
-    public BaseObjectRepository(IOptions<MongoOptions> options)
+    public BaseObjectRepository(IOptions<MongoOptions> options, ILogger<BaseObjectRepository> logger)
     {
+        _logger = logger;
         var client = new MongoClient(options.Value.ConnectionString);
         var database = client.GetDatabase(options.Value.DatabaseName);
         _collection = database.GetCollection<BsonDocument>(MongoDbContracts.MongoCollection);
+        _logger.LogInformation("BaseObjectRepository initialized for {Db}", options.Value.DatabaseName);
     }
 
     // Get 8 most recent objects with only BaseObject properties

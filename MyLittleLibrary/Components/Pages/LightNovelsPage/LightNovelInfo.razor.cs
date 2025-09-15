@@ -17,6 +17,7 @@ public partial class LightNovelInfo : ComponentBase, IDisposable
     [Inject] private ILightNovelCommandService LightNovelCommandService { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
+    [Inject] private ILogger<LightNovelInfo> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private List<Book.LightNovel> lightNovelVolumes = new();
@@ -48,9 +49,10 @@ public partial class LightNovelInfo : ComponentBase, IDisposable
                 .OrderBy(ln => ln.Volume)
                 .ToList();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle any exceptions
+            Logger.LogError(ex, "Error loading light novel volumes");      
         }
         finally
         {
@@ -67,9 +69,10 @@ public partial class LightNovelInfo : ComponentBase, IDisposable
             await LoadLightNovelVolumes();
             Notifications.Success($"Light novel marked as {(!lightNovel.IsRead ? "read" : "unread")}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             Notifications.Error("Error updating light novel status");
+            Logger.LogError(ex, "Error updating light novel status");      
         }
     }
 

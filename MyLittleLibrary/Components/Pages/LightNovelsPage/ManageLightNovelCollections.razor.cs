@@ -16,6 +16,7 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private INotificationService Notifications { get; set; } = null!;
     [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
+    [Inject] private ILogger<ManageLightNovelCollections> Logger { get; set; } = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private string searchQuery = "";
@@ -127,6 +128,7 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error(ex);
+            Logger.LogError(ex, "Error deleting light novel");      
         }
     }
 
@@ -157,6 +159,7 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error($"Error: {ex.Message}");
+            Logger.LogError(ex, "Error deleting light novel collection");      
         }
     }
 
@@ -186,6 +189,7 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
         catch (Exception ex)
         {
             Notifications.Error($"Error: {ex.Message}");
+            Logger.LogError(ex, "Error deleting all light novel collection");      
         }
     }
 
@@ -212,9 +216,10 @@ public partial class ManageLightNovelCollections : ComponentBase, IDisposable
                 return true;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Handle any file system exceptions
+            Logger.LogError(ex, "Error deleting image file");       
             return false;
         }
 

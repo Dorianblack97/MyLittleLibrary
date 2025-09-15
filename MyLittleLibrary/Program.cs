@@ -82,6 +82,17 @@ builder.Services.AddScoped<IMangaCommandService, MangaCommandService>();
 builder.Services.AddScoped<ILightNovelCommandService, LightNovelCommandService>();
 builder.Services.AddScoped<IFilmCommandService, FilmCommandService>();
 
+// Ensure MongoDB indexes exist on startup
+try
+{
+    await MongoIndexInitializer.EnsureIndexesAsync(connectionString, databaseName);
+    Log.Information("MongoDB indexes ensured on startup");
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Failed to ensure MongoDB indexes on startup");
+}
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

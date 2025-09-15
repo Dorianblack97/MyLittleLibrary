@@ -7,9 +7,9 @@
 5. [x] Introduce a query/command separation (lightweight CQRS) for reads vs writes to clarify data flows and reduce side effects.
 6. [x] Add cancellation token support to all async repository/service methods and propagate from UI calls.
 7. [ ] Add pagination/slicing parameters (skip/take) to list-returning methods (e.g., GetAll, GetAllByTitle) to avoid loading large collections in memory. 
-10. [ ] Create MongoDB indexes: Title (case-insensitive), TitleSlug, CollectionType, and compound unique index (Title, Volume) for Manga; add index creation on startup. 
 8. [x] Centralize error handling and user notifications (e.g., a NotificationService) instead of ad-hoc Snackbar.Add calls scattered in components. 
 9. [x] Add structured logging using ILogger<T> in repositories and services; log at appropriate levels with contextual metadata (title, id, volume). 
+10. [x] Create MongoDB indexes: Title (case-insensitive), TitleSlug, CollectionType, and compound unique index (Title, Volume) for MongoDB 'Collections' collection; add index creation on startup. 
 11. [ ] Replace regex title search with indexed, case-insensitive search (collation) or prefix search to leverage indexes and improve performance. 
 12. [ ] Ensure BaseObject.Timestamp is consistently set by domain factories/constructors and is UTC; avoid resetting timestamps during updates unless intended (add UpdatedAt if needed). 
 13. [ ] Add validation for domain invariants (e.g., Title non-empty, Volume > 0 for Manga, TitleSlug conforms to slug rules) using constructors or a validation layer. 

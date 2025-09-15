@@ -93,14 +93,31 @@ public class MangaRepository
         return ok;
     }
 
-    // Search by title (partial match)
+    // Search by title (prefix, case-insensitive via collation). Uses index on Title.
     public async Task<List<Book.Manga>> SearchByTitleAsync(string titleQuery, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<Book.Manga>.Filter.And(
-            Builders<Book.Manga>.Filter.Regex(m => m.Title, new BsonRegularExpression(titleQuery, "i")),
-            Builders<Book.Manga>.Filter.Eq(m => m.CollectionType, Collection.Manga)
+        if (string.IsNullOrWhiteSpace(titleQuery))
+        {
+            return await GetAllAsync(cancellationToken);
+        }
+
+        // Prefix boundaries (e.g., "Cla" => GTE "Cla" AND LT "Cla\uffff")
+        var prefix = titleQuery.Trim();
+        var upperBound = prefix + "\uffff";
+
+        var builder = Builders<Book.Manga>.Filter;
+        var filter = builder.And(
+            builder.Gte(m => m.Title, prefix),
+            builder.Lt(m => m.Title, upperBound),
+            builder.Eq(m => m.CollectionType, Collection.Manga)
         );
-        var res = await _collection.Find(filter).ToListAsync(cancellationToken);
-        return res;
+
+        var options = new FindOptions<Book.Manga>
+        {
+            Collation = new Collation("simple", strength: CollationStrength.Secondary) // case-insensitive
+        };
+
+        using var cursor = await _collection.FindAsync(filter, options, cancellationToken);
+        return await cursor.ToListAsync(cancellationToken);
     }
 }

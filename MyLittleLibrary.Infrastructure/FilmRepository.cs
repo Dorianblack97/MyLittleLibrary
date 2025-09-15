@@ -95,14 +95,31 @@ public class FilmRepository
         return ok;       
     }
 
-    // Search by title (partial match)
+    // Search by title (prefix, case-insensitive via collation). Uses index on Title.
     public async Task<List<Video.Film>> SearchByTitleAsync(string titleQuery, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<Video.Film>.Filter.And(
-            Builders<Video.Film>.Filter.Regex(f => f.Title, new BsonRegularExpression(titleQuery, "i")),
-            Builders<Video.Film>.Filter.Eq(f => f.CollectionType, Collection.Film)
+        if (string.IsNullOrWhiteSpace(titleQuery))
+        {
+            return await GetAllAsync(cancellationToken);
+        }
+
+        var prefix = titleQuery.Trim();
+        var upperBound = prefix + "\uffff";
+
+        var builder = Builders<Video.Film>.Filter;
+        var filter = builder.And(
+            builder.Gte(f => f.Title, prefix),
+            builder.Lt(f => f.Title, upperBound),
+            builder.Eq(f => f.CollectionType, Collection.Film)
         );
-        return await _collection.Find(filter).ToListAsync(cancellationToken);
+
+        var options = new FindOptions<Video.Film>
+        {
+            Collation = new Collation("simple", strength: CollationStrength.Secondary)
+        };
+
+        using var cursor = await _collection.FindAsync(filter, options, cancellationToken);
+        return await cursor.ToListAsync(cancellationToken);
     }
 
     // Search by director (partial match)

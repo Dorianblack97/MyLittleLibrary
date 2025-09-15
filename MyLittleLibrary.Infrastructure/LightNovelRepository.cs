@@ -93,13 +93,30 @@ public class LightNovelRepository
         return ok;       
     }
 
-    // Search by title (partial match)
+    // Search by title (prefix, case-insensitive via collation). Uses index on Title.
     public async Task<List<Book.LightNovel>> SearchByTitleAsync(string titleQuery, CancellationToken cancellationToken = default)
     {
-        var filter = Builders<Book.LightNovel>.Filter.And(
-            Builders<Book.LightNovel>.Filter.Regex(l => l.Title, new BsonRegularExpression(titleQuery, "i")),
-            Builders<Book.LightNovel>.Filter.Eq(l => l.CollectionType, Collection.LightNovel)
+        if (string.IsNullOrWhiteSpace(titleQuery))
+        {
+            return await GetAllAsync(cancellationToken);
+        }
+
+        var prefix = titleQuery.Trim();
+        var upperBound = prefix + "\uffff";
+
+        var builder = Builders<Book.LightNovel>.Filter;
+        var filter = builder.And(
+            builder.Gte(l => l.Title, prefix),
+            builder.Lt(l => l.Title, upperBound),
+            builder.Eq(l => l.CollectionType, Collection.LightNovel)
         );
-        return await _collection.Find(filter).ToListAsync(cancellationToken);
+
+        var options = new FindOptions<Book.LightNovel>
+        {
+            Collation = new Collation("simple", strength: CollationStrength.Secondary)
+        };
+
+        using var cursor = await _collection.FindAsync(filter, options, cancellationToken);
+        return await cursor.ToListAsync(cancellationToken);
     }
 }

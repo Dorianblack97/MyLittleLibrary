@@ -11,7 +11,7 @@
 9. [x] Add structured logging using ILogger<T> in repositories and services; log at appropriate levels with contextual metadata (title, id, volume). 
 10. [x] Create MongoDB indexes: Title (case-insensitive), TitleSlug, CollectionType, and compound unique index (Title, Volume) for MongoDB 'Collections' collection; add index creation on startup. 
 11. [x] Replace regex title search with indexed, case-insensitive search (collation) or prefix search to leverage indexes and improve performance. 
-12. [ ] Ensure BaseObject.Timestamp is consistently set by domain factories/constructors and is UTC; avoid resetting timestamps during updates unless intended (add UpdatedAt if needed). 
+12. [x] Ensure BaseObject.Timestamp is consistently set by domain factories/constructors and is UTC; avoid resetting timestamps during updates unless intended (add UpdatedAt if needed). 
 13. [ ] Add validation for domain invariants (e.g., Title non-empty, Volume > 0 for Manga, TitleSlug conforms to slug rules) using constructors or a validation layer. 
 14. [ ] Normalize TitleSlug generation in a single utility/service to guarantee consistency across creates/updates and prevent mismatches. 
 15. [ ] Review nullability: enable Nullable Reference Types across projects and annotate properties/parameters; fix or suppress warnings appropriately. 

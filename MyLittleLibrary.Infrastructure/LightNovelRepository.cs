@@ -69,7 +69,8 @@ public class LightNovelRepository
             .Set(l => l.ImagePath, updatedLightNovel.ImagePath)
             .Set(l => l.IsDigital, updatedLightNovel.IsDigital)
             .Set(l => l.IsRead, updatedLightNovel.IsRead)
-            .Set(l => l.PublishDate, updatedLightNovel.PublishDate);
+            .Set(l => l.PublishDate, updatedLightNovel.PublishDate)
+            .Set(l => l.UpdatedAt, DateTime.UtcNow);
 
         _logger.LogInformation("Updating LN {Id} to title {Title} v{Volume}", id, updatedLightNovel.Title,
             updatedLightNovel.Volume);

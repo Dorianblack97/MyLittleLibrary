@@ -33,12 +33,12 @@ public class BaseObjectRepository
             .Include("TitleSlug")
             .Include("ImagePath")
             .Include("CollectionType")
-            .Include("Timestamp");
+            .Include("CreateAt");
 
         var documents = await _collection
             .Find(new BsonDocument())
             .Project(projection)
-            .Sort(Builders<BsonDocument>.Sort.Descending("Timestamp"))
+            .Sort(Builders<BsonDocument>.Sort.Descending("CreateAt"))
             .Limit(count)
             .ToListAsync(cancellationToken);
 
@@ -47,7 +47,7 @@ public class BaseObjectRepository
             titleSlug: doc.GetValue("TitleSlug", "").AsString,
             imagePath: doc.GetValue("ImagePath", BsonNull.Value).IsBsonNull ? null : doc["ImagePath"].AsString,
             collectionType: (Collection)doc.GetValue("CollectionType", 0).AsInt32,
-            timestamp: doc.GetValue("Timestamp", DateTime.MinValue).ToUniversalTime(),
+            timestamp: doc.GetValue("CreateAt", DateTime.MinValue).ToUniversalTime(),
             id: doc["_id"].AsObjectId.ToString()
         )).ToList();
     }

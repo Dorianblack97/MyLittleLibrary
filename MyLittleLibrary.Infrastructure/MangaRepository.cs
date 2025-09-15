@@ -70,7 +70,8 @@ public class MangaRepository
             .Set(m => m.ImagePath, updatedManga.ImagePath)
             .Set(m => m.IsDigital, updatedManga.IsDigital)
             .Set(m => m.IsRead, updatedManga.IsRead)
-            .Set(m => m.PublishDate, updatedManga.PublishDate);
+            .Set(m => m.PublishDate, updatedManga.PublishDate)
+            .Set(m => m.UpdatedAt, DateTime.UtcNow);
 
         _logger.LogInformation("Updating manga {Id} to title {Title} v{Volume}", id, updatedManga.Title,
             updatedManga.Volume);

@@ -72,7 +72,8 @@ public class FilmRepository
             .Set(f => f.Format, updatedFilm.Format)
             .Set(f => f.IsWatched, updatedFilm.IsWatched)
             .Set(f => f.ReleaseDate, updatedFilm.ReleaseDate)
-            .Set(f => f.ImagePath, updatedFilm.ImagePath);
+            .Set(f => f.ImagePath, updatedFilm.ImagePath)
+            .Set(f => f.UpdatedAt, DateTime.UtcNow);
 
         _logger.LogInformation("Updating film {Id} to title {Title}", id, updatedFilm.Title);
         var result = await _collection.UpdateOneAsync(

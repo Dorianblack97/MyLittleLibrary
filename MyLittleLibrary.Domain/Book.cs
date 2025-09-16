@@ -33,6 +33,9 @@ public record Book : BaseObject
             string? imagePath, bool isDigital, bool isRead, DateTime? publishDate, string id = null) 
             : base(title, titleSlug, imagePath, Collection.Manga, id)
         {
+            if (volume <= 0)
+                throw new ArgumentOutOfRangeException(nameof(volume), "Manga volume must be greater than zero.");
+
             Title = title;
             TitleSlug = titleSlug;
             Author = author;
